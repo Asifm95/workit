@@ -1,0 +1,17 @@
+# {{feature_title}} — Workspace
+
+This is the workspace folder for developing the **{{feature_title}}** feature.
+
+## Structure
+
+The parent directory contains subdirectories, each of which is a separate git project (repository) required to implement this feature. Each subdirectory is already set up as a git worktree and is checked out on the relevant feature branch — do not create new worktrees or switch branches inside them.
+
+Current subprojects:
+
+{{#each projects}}
+- [`{{folder}}/`](./{{folder}}/CLAUDE.md) — see its `CLAUDE.md` for project-specific instructions.
+{{/each}}
+
+## Working in this workspace
+
+When working inside a subdirectory, follow the instructions in that subdirectory's own `CLAUDE.md`. Those files are authoritative for their respective projects.
