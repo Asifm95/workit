@@ -196,7 +196,8 @@ At first use in a session (and after cache TTL expires), workit walks each `proj
    - each targetPath(p) does not exist
    - each branchName does not already exist in project p (unless --reuse-branch)
 
-4. Print the plan and confirm (skipped with --yes or --dry-run-exit).
+4. Print the plan and confirm. Skipped with --yes. With --dry-run, the plan
+   is still printed (it's the point of the command) but execution exits here.
 
 5. Create workspaceDir (mkdir -p) and render its CLAUDE.md from the template.
    Skip this step when !isWorkspace.
