@@ -20,7 +20,7 @@ export async function run(
   return {
     stdout: String(result.stdout ?? ""),
     stderr: String(result.stderr ?? ""),
-    exitCode: result.exitCode ?? 1,
+    exitCode: result.exitCode ?? 0,
   };
 }
 
