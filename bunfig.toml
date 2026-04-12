@@ -1,0 +1,3 @@
+# bun auto-discovers *.test.ts files; reserve this file for future
+# test configuration such as preload scripts.
+[test]
