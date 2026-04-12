@@ -44,12 +44,18 @@ export async function loadConfig(
     await writeJsonFile(path, DEFAULT_CONFIG);
     return { config: DEFAULT_CONFIG, created: true, path };
   }
-  const raw = await readJsonFile(path);
+  let raw: unknown;
+  try {
+    raw = await readJsonFile(path);
+  } catch (err) {
+    throw new Error(`Invalid config at ${path}: ${(err as Error).message}`);
+  }
   const parsed = ConfigSchema.safeParse(raw);
   if (!parsed.success) {
-    throw new Error(
-      `Invalid config at ${path}: ${parsed.error.issues.map((i) => i.message).join(", ")}`
-    );
+    const issues = parsed.error.issues
+      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
+      .join("; ");
+    throw new Error(`Invalid config at ${path}: ${issues}`);
   }
   return { config: parsed.data, created: false, path };
 }
