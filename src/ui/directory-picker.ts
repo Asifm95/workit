@@ -99,6 +99,7 @@ export async function directoryPicker(opts: {
 
     readline.emitKeypressEvents(stdin);
     if (stdin.isTTY) stdin.setRawMode(true);
+    stdin.resume();
     stdout.write("\x1B[?25l"); // hide cursor
 
     function render() {
@@ -192,6 +193,7 @@ export async function directoryPicker(opts: {
     function cleanup() {
       stdin.removeListener("keypress", handleKey);
       if (stdin.isTTY) stdin.setRawMode(false);
+      stdin.pause();
       stdout.write("\x1B[?25h\n"); // show cursor
     }
 
