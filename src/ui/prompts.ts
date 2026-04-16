@@ -42,23 +42,10 @@ export async function promptBranchType(
 }
 
 export async function promptProjectPicker(
-  projects: Project[],
-  preselected: Project[]
+  _cwd: string,
 ): Promise<Project[]> {
-  const result = await p.multiselect({
-    message: "Select projects",
-    required: true,
-    initialValues: preselected.map((proj) => proj.path),
-    options: projects.map((proj) => ({ value: proj.path, label: proj.name })),
-  });
-  if (p.isCancel(result)) {
-    p.cancel("Cancelled");
-    process.exit(1);
-  }
-  const picks = result as string[];
-  return picks
-    .map((path) => projects.find((proj) => proj.path === path)!)
-    .filter(Boolean);
+  // TODO: Replace with DirectoryPicker in Phase 2
+  throw new Error("Interactive project picker not yet implemented");
 }
 
 export async function promptConfirm(

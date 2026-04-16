@@ -35,7 +35,6 @@ describe("runRmCommand", () => {
     await writeFile(tpl, "# {{feature_title}}\n");
     config = {
       workspacesDir: join(root, "ws"),
-      projectRoots: [projectsRoot],
       defaultBranchType: "feat",
       defaultTerminal: "none",
       terminalCommand: {},
@@ -52,7 +51,7 @@ describe("runRmCommand", () => {
       config,
       description: "Only Me",
       branchType: "feat",
-      projectNames: ["alpha"],
+      projectPaths: [join(root, "projects", "alpha")],
       terminal: "none",
       assumeYes: true,
     });
@@ -77,7 +76,7 @@ describe("runRmCommand", () => {
       config,
       description: "Big Thing",
       branchType: "feat",
-      projectNames: ["alpha", "beta"],
+      projectPaths: [join(root, "projects", "alpha"), join(root, "projects", "beta")],
       terminal: "none",
       assumeYes: true,
     });

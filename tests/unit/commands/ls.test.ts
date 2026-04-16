@@ -12,7 +12,6 @@ describe("listEntries", () => {
     root = await mkdtemp(join(tmpdir(), "workit-ls-"));
     config = {
       workspacesDir: root,
-      projectRoots: ["/"],
       defaultBranchType: "feat",
       defaultTerminal: "none",
       terminalCommand: {},

@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
+import { resolve } from "node:path";
 import { Command } from "commander";
-import { loadConfig, resolveConfigPaths } from "./core/config";
+import { loadConfig } from "./core/config";
 import { runNewCommand } from "./commands/new";
 import { runRmCommand } from "./commands/rm";
 import { runLsCommand } from "./commands/ls";
 import { runConfigCommand } from "./commands/config";
-import { discoverProjects, findProjectContaining } from "./core/project-discovery";
 import {
   promptDescription,
   promptBranchType,
@@ -16,33 +16,38 @@ import { error } from "./ui/log";
 import type { BackendName } from "./terminal";
 
 const program = new Command();
-program.name("workit").description("Multi-project git worktree workflow manager").version("0.1.0");
+program
+  .name("workit")
+  .description("Multi-project git worktree workflow manager")
+  .version("0.1.0");
 
 program
   .command("new")
   .description("Create worktree(s) for a new feature")
   .argument("[description]", "feature description")
   .option("--type <type>", "branch type (feat/fix/chore/...)")
-  .option("--projects <names>", "comma-separated project names")
+  .option("--projects <paths>", "comma-separated project paths")
   .option("--terminal <backend>", "cmux|tmux|none")
   .option("--dry-run", "print the plan without executing", false)
   .option("-y, --yes", "skip confirmations", false)
   .action(async (description: string | undefined, opts) => {
     try {
       const { config } = await loadConfig();
-      const resolved = resolveConfigPaths(config);
-      const all = await discoverProjects(resolved.resolvedProjectRoots);
-
       const desc = await promptDescription(description);
-      const branchType = await promptBranchType(opts.type, config.defaultBranchType);
+      const branchType = await promptBranchType(
+        opts.type,
+        config.defaultBranchType,
+      );
 
-      let projectNames: string[];
+      let projectPaths: string[];
       if (opts.projects) {
-        projectNames = String(opts.projects).split(",").map((s) => s.trim()).filter(Boolean);
+        projectPaths = String(opts.projects)
+          .split(",")
+          .map((s) => resolve(s.trim()))
+          .filter(Boolean);
       } else {
-        const pre = findProjectContaining(all, process.cwd());
-        const picked = await promptProjectPicker(all, pre ? [pre] : []);
-        projectNames = picked.map((p) => p.name);
+        const picked = await promptProjectPicker(process.cwd());
+        projectPaths = picked.map((p) => p.path);
       }
 
       if (!opts.yes && !opts.dryRun) {
@@ -54,7 +59,7 @@ program
         config,
         description: desc,
         branchType,
-        projectNames,
+        projectPaths,
         terminal: opts.terminal as BackendName | undefined,
         assumeYes: Boolean(opts.yes),
         dryRun: Boolean(opts.dryRun),

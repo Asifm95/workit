@@ -1,5 +1,5 @@
 import { readdir, rm as rmFs, realpath } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { basename, join, resolve } from "node:path";
 import type { Config } from "../core/config";
 import { resolveConfigPaths } from "../core/config";
 import {
@@ -8,7 +8,6 @@ import {
   type WorkspaceEntry,
   type WorktreeTarget,
 } from "../core/plan";
-import { discoverProjects, type Project } from "../core/project-discovery";
 import { ensureDir, pathExists } from "../utils/fs";
 import { removeWorktree } from "../git/worktree";
 import {
@@ -33,7 +32,6 @@ export interface RunRmResult {
 
 async function resolveWorktreeTarget(
   path: string,
-  projects: Project[]
 ): Promise<WorktreeTarget | null> {
   if (!(await pathExists(join(path, ".git")))) return null;
   const { execa } = await import("execa");
@@ -45,14 +43,7 @@ async function resolveWorktreeTarget(
   if (commonDir.exitCode !== 0) return null;
   const mainRepo = resolve(String(commonDir.stdout ?? "").trim(), "..");
   const mainRepoReal = await realpath(mainRepo).catch(() => mainRepo);
-  const project = await (async () => {
-    for (const p of projects) {
-      const pReal = await realpath(p.path).catch(() => p.path);
-      if (pReal === mainRepoReal || resolve(p.path) === mainRepo) return p;
-    }
-    return undefined;
-  })();
-  if (!project) return null;
+  const project = { name: basename(mainRepoReal), path: mainRepoReal };
   const branchRes = await execa(
     "git",
     ["rev-parse", "--abbrev-ref", "HEAD"],
@@ -64,7 +55,6 @@ async function resolveWorktreeTarget(
 
 async function loadEntries(
   workspacesDir: string,
-  projects: Project[]
 ): Promise<WorkspaceEntry[]> {
   if (!(await pathExists(workspacesDir))) return [];
   const entries: WorkspaceEntry[] = [];
@@ -73,7 +63,7 @@ async function loadEntries(
     if (!c.isDirectory()) continue;
     const full = join(workspacesDir, c.name);
     if (await pathExists(join(full, ".git"))) {
-      const target = await resolveWorktreeTarget(full, projects);
+      const target = await resolveWorktreeTarget(full);
       if (target) entries.push({ kind: "single", path: full, target });
       continue;
     }
@@ -82,7 +72,7 @@ async function loadEntries(
     for (const s of subs) {
       if (!s.isDirectory()) continue;
       const sub = join(full, s.name);
-      const target = await resolveWorktreeTarget(sub, projects);
+      const target = await resolveWorktreeTarget(sub);
       if (target) worktrees.push(target);
     }
     if (worktrees.length > 0) {
@@ -95,8 +85,7 @@ async function loadEntries(
 export async function runRmCommand(args: RunRmArgs): Promise<RunRmResult> {
   const resolved = resolveConfigPaths(args.config);
   await ensureDir(resolved.resolvedWorkspacesDir);
-  const projects = await discoverProjects(resolved.resolvedProjectRoots);
-  const entries = await loadEntries(resolved.resolvedWorkspacesDir, projects);
+  const entries = await loadEntries(resolved.resolvedWorkspacesDir);
   const plan = buildRmPlan({
     name: args.name,
     workspacesDir: resolved.resolvedWorkspacesDir,

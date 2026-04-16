@@ -3,25 +3,25 @@ import { homedir } from "node:os";
 import { z } from "zod";
 import { expandUser, pathExists, readJsonFile, writeJsonFile } from "../utils/fs";
 
-export const ConfigSchema = z.object({
-  workspacesDir: z.string().min(1),
-  projectRoots: z.array(z.string().min(1)).min(1),
-  defaultBranchType: z.string().min(1),
-  defaultTerminal: z.enum(["auto", "cmux", "tmux", "none"]),
-  terminalCommand: z.object({
-    cmux: z.string().optional(),
-  }),
-  templates: z.object({
-    workspaceClaudeMd: z.string().min(1),
-  }),
-  setupScriptPaths: z.array(z.string().min(1)).min(1),
-});
+export const ConfigSchema = z
+  .object({
+    workspacesDir: z.string().min(1),
+    defaultBranchType: z.string().min(1),
+    defaultTerminal: z.enum(["auto", "cmux", "tmux", "none"]),
+    terminalCommand: z.object({
+      cmux: z.string().optional(),
+    }),
+    templates: z.object({
+      workspaceClaudeMd: z.string().min(1),
+    }),
+    setupScriptPaths: z.array(z.string().min(1)).min(1),
+  })
+  .passthrough();
 
 export type Config = z.infer<typeof ConfigSchema>;
 
 export const DEFAULT_CONFIG: Config = {
   workspacesDir: "~/.workit/workspaces",
-  projectRoots: ["~/Projects"],
   defaultBranchType: "feat",
   defaultTerminal: "auto",
   terminalCommand: {
@@ -62,13 +62,11 @@ export async function loadConfig(
 
 export function resolveConfigPaths(config: Config): Config & {
   resolvedWorkspacesDir: string;
-  resolvedProjectRoots: string[];
   resolvedWorkspaceClaudeTemplate: string;
 } {
   return {
     ...config,
     resolvedWorkspacesDir: expandUser(config.workspacesDir),
-    resolvedProjectRoots: config.projectRoots.map(expandUser),
     resolvedWorkspaceClaudeTemplate: expandUser(config.templates.workspaceClaudeMd),
   };
 }

@@ -20,10 +20,10 @@ describe("ConfigSchema", () => {
     ).toThrow();
   });
 
-  test("rejects empty projectRoots", () => {
+  test("accepts config with legacy projectRoots via passthrough", () => {
     expect(() =>
-      ConfigSchema.parse({ ...DEFAULT_CONFIG, projectRoots: [] })
-    ).toThrow();
+      ConfigSchema.parse({ ...DEFAULT_CONFIG, projectRoots: ["~/Projects"] })
+    ).not.toThrow();
   });
 });
 
@@ -41,7 +41,7 @@ describe("loadConfig", () => {
     const { config, created } = await loadConfig(path);
     expect(created).toBe(true);
     expect(config.workspacesDir).toContain(".workit/workspaces");
-    expect(config.projectRoots.length).toBeGreaterThan(0);
+    expect(config.workspacesDir).toBeDefined();
   });
 
   test("loads an existing config", async () => {
@@ -50,7 +50,6 @@ describe("loadConfig", () => {
       path,
       JSON.stringify({
         workspacesDir: "~/w",
-        projectRoots: ["~/p"],
         defaultBranchType: "fix",
         defaultTerminal: "tmux",
         terminalCommand: {},

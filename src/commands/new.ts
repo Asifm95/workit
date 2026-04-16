@@ -1,10 +1,10 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import type { Config } from "../core/config";
 import { resolveConfigPaths } from "../core/config";
 import { slugify } from "../core/slug";
 import { buildNewPlan, formatNewPlan } from "../core/plan";
-import { discoverProjects, type Project } from "../core/project-discovery";
+import type { Project } from "../core/project-discovery";
 import { ensureDir, pathExists } from "../utils/fs";
 import { addWorktree } from "../git/worktree";
 import { branchExists, isGitRepo } from "../git/repo";
@@ -22,7 +22,7 @@ export interface RunNewArgs {
   config: Config;
   description: string;
   branchType: string;
-  projectNames: string[];
+  projectPaths: string[];
   terminal?: BackendName;
   assumeYes: boolean;
   dryRun?: boolean;
@@ -46,13 +46,10 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
   const resolved = resolveConfigPaths(args.config);
   const slug = slugify(args.description);
 
-  const all = await discoverProjects(resolved.resolvedProjectRoots);
-  const matched: Project[] = [];
-  for (const name of args.projectNames) {
-    const p = all.find((x) => x.name === name);
-    if (!p) throw new Error(`Project "${name}" not found under ${resolved.projectRoots.join(", ")}`);
-    matched.push(p);
-  }
+  const matched: Project[] = args.projectPaths.map((p) => ({
+    name: basename(p),
+    path: p,
+  }));
 
   const plan = buildNewPlan({
     description: args.description,

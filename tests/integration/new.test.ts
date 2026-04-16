@@ -42,7 +42,6 @@ describe("runNewCommand", () => {
     );
     config = {
       workspacesDir,
-      projectRoots: [projectsRoot],
       defaultBranchType: "feat",
       defaultTerminal: "none",
       terminalCommand: {},
@@ -59,7 +58,7 @@ describe("runNewCommand", () => {
       config,
       description: "First feature",
       branchType: "feat",
-      projectNames: ["alpha"],
+      projectPaths: [join(projectsRoot, "alpha")],
       terminal: "none",
       assumeYes: true,
     });
@@ -75,7 +74,7 @@ describe("runNewCommand", () => {
       config,
       description: "Big Change",
       branchType: "feat",
-      projectNames: ["alpha", "beta"],
+      projectPaths: [join(projectsRoot, "alpha"), join(projectsRoot, "beta")],
       terminal: "none",
       assumeYes: true,
     });
@@ -95,7 +94,7 @@ describe("runNewCommand", () => {
       config,
       description: "Thing",
       branchType: "feat",
-      projectNames: ["alpha"],
+      projectPaths: [join(projectsRoot, "alpha")],
       terminal: "none",
       assumeYes: true,
     });
@@ -104,7 +103,7 @@ describe("runNewCommand", () => {
         config,
         description: "Thing",
         branchType: "feat",
-        projectNames: ["alpha"],
+        projectPaths: [join(projectsRoot, "alpha")],
         terminal: "none",
         assumeYes: true,
       })
