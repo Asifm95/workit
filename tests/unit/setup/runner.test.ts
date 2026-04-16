@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, writeFile, mkdir, chmod } from "node:fs/promises";
+import { mkdtemp, rm, mkdir, chmod } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -17,7 +17,7 @@ describe("findSetupScript", () => {
   });
 
   test("finds ./setup.sh when present", async () => {
-    await writeFile(join(dir, "setup.sh"), "#!/bin/bash\necho hi\n");
+    await Bun.write(join(dir, "setup.sh"), "#!/bin/bash\necho hi\n");
     await chmod(join(dir, "setup.sh"), 0o755);
     const found = await findSetupScript(dir, ["./setup.sh", ".workit/setup.sh"]);
     expect(found).toBe(join(dir, "setup.sh"));
@@ -25,7 +25,7 @@ describe("findSetupScript", () => {
 
   test("finds .workit/setup.sh when ./setup.sh is missing", async () => {
     await mkdir(join(dir, ".workit"));
-    await writeFile(join(dir, ".workit", "setup.sh"), "#!/bin/bash\n");
+    await Bun.write(join(dir, ".workit", "setup.sh"), "#!/bin/bash\n");
     const found = await findSetupScript(dir, ["./setup.sh", ".workit/setup.sh"]);
     expect(found).toBe(join(dir, ".workit/setup.sh"));
   });
@@ -41,7 +41,7 @@ describe("runSetupScripts", () => {
   beforeEach(async () => {
     a = await mkdtemp(join(tmpdir(), "workit-setup-a-"));
     b = await mkdtemp(join(tmpdir(), "workit-setup-b-"));
-    await writeFile(join(a, "setup.sh"), "#!/bin/bash\necho A-ok\n");
+    await Bun.write(join(a, "setup.sh"), "#!/bin/bash\necho A-ok\n");
     await chmod(join(a, "setup.sh"), 0o755);
   });
   afterEach(async () => {

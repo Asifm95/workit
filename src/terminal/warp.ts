@@ -1,5 +1,5 @@
 import { execa } from 'execa';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import path, { join } from 'node:path';
 import { pathExists } from '../utils/fs';
 import { warn } from '../ui/log';
@@ -84,7 +84,7 @@ export async function runWarpBackend(args: RunWarpArgs): Promise<void> {
   const yaml = buildWarpLaunchConfig({ configName: featureSlug, tabs });
 
   await mkdir(dir, { recursive: true });
-  await writeFile(filePath, yaml, 'utf8');
+  await Bun.write(filePath, yaml);
 
   const url = `warp://launch/${featureSlug}`;
   const invocation = deepLinkCommand(process.platform, url);

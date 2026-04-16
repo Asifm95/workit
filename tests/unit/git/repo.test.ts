@@ -1,5 +1,4 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { makeRepo } from "../../fixtures/make-repo";
 import {
@@ -55,7 +54,7 @@ describe("isDirty", () => {
     expect(await isDirty(repo.path)).toBe(false);
   });
   test("returns true when there is an uncommitted change", async () => {
-    await writeFile(join(repo.path, "README.md"), "changed\n");
+    await Bun.write(join(repo.path, "README.md"), "changed\n");
     expect(await isDirty(repo.path)).toBe(true);
   });
 });

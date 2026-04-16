@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { listEntries } from "../../../src/commands/ls";
@@ -26,7 +26,7 @@ describe("listEntries", () => {
   test("labels single worktrees and workspaces", async () => {
     await mkdir(join(root, "single.slug"));
     await mkdir(join(root, "single.slug/.git"));
-    await writeFile(join(root, "single.slug/.git/HEAD"), "ref: refs/heads/main\n");
+    await Bun.write(join(root, "single.slug/.git/HEAD"), "ref: refs/heads/main\n");
     await mkdir(join(root, "workspace-feat"));
     await mkdir(join(root, "workspace-feat/subA"));
 

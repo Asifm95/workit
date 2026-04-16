@@ -1,4 +1,3 @@
-import { readFile, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
@@ -88,7 +87,7 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     await ensureDir(plan.workspacePath);
     const tplPath = resolved.resolvedWorkspaceClaudeTemplate;
     if (await pathExists(tplPath)) {
-      const tpl = await readFile(tplPath, 'utf8');
+      const tpl = await Bun.file(tplPath).text();
       const rendered = renderTemplate(tpl, {
         feature_title: toTitleCase(args.description),
         feature_slug: slug,
@@ -100,7 +99,7 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
           branch: t.branch,
         })),
       });
-      await writeFile(join(plan.workspacePath, 'CLAUDE.md'), rendered);
+      await Bun.write(join(plan.workspacePath, 'CLAUDE.md'), rendered);
     } else {
       warn(`template not found at ${tplPath}; skipping CLAUDE.md`);
     }

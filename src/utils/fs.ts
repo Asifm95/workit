@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { homedir } from 'node:os';
 
@@ -10,7 +10,7 @@ export function expandUser(p: string): string {
 
 export async function pathExists(p: string): Promise<boolean> {
   try {
-    await access(p);
+    await Bun.file(p).stat();
     return true;
   } catch {
     return false;
@@ -22,11 +22,10 @@ export async function ensureDir(p: string): Promise<void> {
 }
 
 export async function readJsonFile<T = unknown>(p: string): Promise<T> {
-  const raw = await readFile(p, 'utf8');
-  return JSON.parse(raw) as T;
+  return (await Bun.file(p).json()) as T;
 }
 
 export async function writeJsonFile(p: string, data: unknown): Promise<void> {
   await ensureDir(dirname(p));
-  await writeFile(p, JSON.stringify(data, null, 2) + '\n', 'utf8');
+  await Bun.write(p, JSON.stringify(data, null, 2) + '\n');
 }

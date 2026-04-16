@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -38,7 +38,7 @@ describe("pathExists / ensureDir", () => {
   });
   test("pathExists returns true after writing a file", async () => {
     const p = join(tmp, "f.txt");
-    await writeFile(p, "hi");
+    await Bun.write(p, "hi");
     expect(await pathExists(p)).toBe(true);
   });
   test("ensureDir creates nested directories", async () => {
@@ -60,7 +60,7 @@ describe("readJsonFile / writeJsonFile", () => {
   test("writes and reads a JSON object", async () => {
     const p = join(tmp, "data.json");
     await writeJsonFile(p, { a: 1, b: ["x"] });
-    const raw = await readFile(p, "utf8");
+    const raw = await Bun.file(p).text();
     expect(JSON.parse(raw)).toEqual({ a: 1, b: ["x"] });
     expect(await readJsonFile<{ a: number; b: string[] }>(p)).toEqual({ a: 1, b: ["x"] });
   });

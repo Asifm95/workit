@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execa } from "execa";
@@ -15,7 +15,7 @@ async function makeRepo(parent: string, name: string) {
   await execa("git", ["init", "-q", "-b", "main", p]);
   await execa("git", ["config", "user.email", "t@t"], { cwd: p });
   await execa("git", ["config", "user.name", "t"], { cwd: p });
-  await writeFile(join(p, "README.md"), "hi\n");
+  await Bun.write(join(p, "README.md"), "hi\n");
   await execa("git", ["add", "."], { cwd: p });
   await execa("git", ["commit", "-q", "-m", "init"], { cwd: p });
   return p;
@@ -32,7 +32,7 @@ describe("runRmCommand", () => {
     await makeRepo(projectsRoot, "alpha");
     await makeRepo(projectsRoot, "beta");
     const tpl = join(root, "tpl.md");
-    await writeFile(tpl, "# {{feature_title}}\n");
+    await Bun.write(tpl, "# {{feature_title}}\n");
     config = {
       workspacesDir: join(root, "ws"),
       defaultBranchType: "feat",

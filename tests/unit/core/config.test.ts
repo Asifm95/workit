@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -46,7 +46,7 @@ describe("loadConfig", () => {
 
   test("loads an existing config", async () => {
     const path = join(tmp, "config.json");
-    await writeFile(
+    await Bun.write(
       path,
       JSON.stringify({
         workspacesDir: "~/w",
@@ -65,7 +65,7 @@ describe("loadConfig", () => {
 
   test("throws on invalid config", async () => {
     const path = join(tmp, "config.json");
-    await writeFile(path, JSON.stringify({ workspacesDir: 42 }));
+    await Bun.write(path, JSON.stringify({ workspacesDir: 42 }));
     await expect(loadConfig(path)).rejects.toThrow();
   });
 });

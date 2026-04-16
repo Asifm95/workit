@@ -1,5 +1,5 @@
 import { describe, expect, test, beforeEach, afterEach } from "bun:test";
-import { mkdtemp, rm, readFile, writeFile, chmod, mkdir } from "node:fs/promises";
+import { mkdtemp, rm, chmod, mkdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execa } from "execa";
@@ -13,8 +13,8 @@ async function setupTestRepo(parent: string, name: string) {
   await execa("git", ["init", "-q", "-b", "main", repo]);
   await execa("git", ["config", "user.email", "t@t"], { cwd: repo });
   await execa("git", ["config", "user.name", "t"], { cwd: repo });
-  await writeFile(join(repo, "README.md"), "hi\n");
-  await writeFile(join(repo, "setup.sh"), "#!/bin/bash\necho setup-done\n");
+  await Bun.write(join(repo, "README.md"), "hi\n");
+  await Bun.write(join(repo, "setup.sh"), "#!/bin/bash\necho setup-done\n");
   await chmod(join(repo, "setup.sh"), 0o755);
   await execa("git", ["add", "."], { cwd: repo });
   await execa("git", ["commit", "-q", "-m", "init"], { cwd: repo });
@@ -36,7 +36,7 @@ describe("runNewCommand", () => {
     await setupTestRepo(projectsRoot, "alpha");
     await setupTestRepo(projectsRoot, "beta");
     templatePath = join(root, "workspace-CLAUDE.md");
-    await writeFile(
+    await Bun.write(
       templatePath,
       "# {{feature_title}}\n\n{{#each projects}}- {{folder}}\n{{/each}}"
     );
@@ -81,7 +81,7 @@ describe("runNewCommand", () => {
     expect(result.ok).toBe(true);
     const ws = join(workspacesDir, "big-change");
     expect(await pathExists(ws)).toBe(true);
-    const claudeMd = await readFile(join(ws, "CLAUDE.md"), "utf8");
+    const claudeMd = await Bun.file(join(ws, "CLAUDE.md")).text();
     expect(claudeMd).toContain("Big Change");
     expect(claudeMd).toContain("alpha.big-change");
     expect(claudeMd).toContain("beta.big-change");
