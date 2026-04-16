@@ -14,6 +14,11 @@ export interface DirEntry {
 
 const EXCLUDED = new Set(['node_modules']);
 
+const S_BAR = '│';
+const S_BAR_END = '└';
+const S_STEP_ACTIVE = '◆';
+const S_STEP_SUBMIT = '◇';
+
 function isDotfile(name: string): boolean {
   return name.startsWith('.');
 }
@@ -99,34 +104,47 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
     stdin.resume();
     stdout.write('\x1B[?25l'); // hide cursor
 
+    function clearPrev() {
+      if (prevLineCount <= 0) return;
+      // lines.join('\n') leaves the cursor on the LAST line of content, not
+      // below it, so we move up by prevLineCount - 1 to return to the first row.
+      const up = prevLineCount - 1;
+      const moveUp = up > 0 ? `\x1B[${up}A` : '';
+      stdout.write(`${moveUp}\x1B[G\x1B[J`);
+    }
+
     function render() {
-      if (prevLineCount > 0) {
-        stdout.write(`\x1B[${prevLineCount}A\x1B[J`);
-      }
+      clearPrev();
 
       const lines: string[] = [];
       const selCount = selected.size;
       const cwdDisplay = abbreviatePath(cwd, home);
+      const bar = pc.cyan(S_BAR);
+      const body = (text: string) => `${bar}  ${text}`;
 
-      lines.push(pc.bold('  Select git repos') + pc.dim('  Tab toggle · Enter confirm'));
       lines.push(
-        `  ${pc.cyan(cwdDisplay)}` +
-          (selCount > 0 ? `  ${pc.green(String(selCount) + ' selected')}` : ''),
+        `${pc.cyan(S_STEP_ACTIVE)}  ${pc.bold('Select git repos')}${pc.dim('  Tab toggle · Enter confirm')}`,
       );
-      lines.push('');
+      lines.push(
+        body(
+          pc.cyan(cwdDisplay) +
+            (selCount > 0 ? `  ${pc.green(String(selCount) + ' selected')}` : ''),
+        ),
+      );
+      lines.push(bar);
 
       // Search input
       if (search) {
-        lines.push(`  ${pc.yellow('/')} ${search}${pc.dim('▌')}`);
+        lines.push(body(`${pc.yellow('/')} ${search}${pc.dim('▌')}`));
       } else {
-        lines.push(`  ${pc.dim('/ type to filter...')}`);
+        lines.push(body(pc.dim('/ type to filter...')));
       }
-      lines.push('');
+      lines.push(bar);
 
       // Parent directory entry
       const parentCursor = cursor === -1;
       const parentPtr = parentCursor ? pc.cyan('❯') : ' ';
-      lines.push(`  ${parentPtr} ${pc.dim('..')}  ${pc.dim('(parent)')}`);
+      lines.push(body(`${parentPtr} ${pc.dim('..')}  ${pc.dim('(parent)')}`));
 
       // Directory entries
       for (let i = 0; i < filtered.length; i++) {
@@ -138,19 +156,22 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
           const isSel = selected.has(entry.path);
           const check = isSel ? pc.green('[x]') : pc.dim('[ ]');
           const name = isCursor ? pc.bold(pc.white(entry.name + '/')) : entry.name + '/';
-          lines.push(`  ${ptr} ${name}  ${check} ${pc.dim('git')}`);
+          lines.push(body(`${ptr} ${name}  ${check} ${pc.dim('git')}`));
         } else {
           const name = pc.dim(entry.name + '/');
-          lines.push(`  ${ptr} ${name}  ${pc.dim('dir')}`);
+          lines.push(body(`${ptr} ${name}  ${pc.dim('dir')}`));
         }
       }
 
       if (filtered.length === 0) {
-        lines.push(pc.dim('    (no matching directories)'));
+        lines.push(body(pc.dim('  (no matching directories)')));
       }
 
-      lines.push('');
-      lines.push(pc.dim('  ↑↓ navigate · →/ forward  · ←/ backward · Tab select · Enter confirm'));
+      lines.push(bar);
+      lines.push(
+        body(pc.dim('↑↓ navigate · →/ forward  · ←/ backward · Tab select · Enter confirm')),
+      );
+      lines.push(pc.cyan(S_BAR_END));
 
       stdout.write(lines.join('\n'));
       prevLineCount = lines.length;
@@ -180,6 +201,20 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
       cursor = 0;
     }
 
+    function renderSubmit() {
+      clearPrev();
+      const bar = pc.gray(S_BAR);
+      const summary = Array.from(selected)
+        .map((p) => abbreviatePath(p, home))
+        .join(pc.dim(', '));
+      const lines = [
+        `${pc.green(S_STEP_SUBMIT)}  ${pc.bold('Select git repos')}`,
+        `${bar}  ${pc.dim(summary)}`,
+      ];
+      stdout.write(lines.join('\n'));
+      prevLineCount = lines.length;
+    }
+
     function cleanup() {
       stdin.removeListener('keypress', handleKey);
       if (stdin.isTTY) stdin.setRawMode(false);
@@ -200,6 +235,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
         // Enter — confirm if selections exist, otherwise enter dir
         if (key.name === 'return') {
           if (selected.size > 0) {
+            renderSubmit();
             cleanup();
             resolvePromise(
               Array.from(selected).map((p) => ({
