@@ -2,16 +2,16 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
-import { slugify } from '../core/slug';
 import { buildNewPlan, formatNewPlan } from '../core/plan';
 import type { Project } from '../core/project-discovery';
-import { ensureDir, pathExists } from '../utils/fs';
-import { addWorktree } from '../git/worktree';
+import { slugify } from '../core/slug';
 import { branchExists, isGitRepo } from '../git/repo';
+import { addWorktree } from '../git/worktree';
 import { runSetupScripts, type SetupResult } from '../setup/runner';
 import { renderTemplate } from '../templates/render';
 import { detectAvailability, dispatchBackend, selectBackend, type BackendName } from '../terminal';
-import { colorFor, info, hint, warn, success } from '../ui/log';
+import { colorFor, hint, info, success, warn } from '../ui/log';
+import { ensureDir, pathExists } from '../utils/fs';
 
 export interface RunNewArgs {
   config: Config;
@@ -72,6 +72,18 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     return { ok: true, plan, setupResults: [] };
   }
 
+  const availability = await detectAvailability(args.config);
+  const backend = selectBackend({
+    flag: args.terminal,
+    configDefault: args.config.defaultTerminal,
+    insideTmux: availability.insideTmux,
+    insideCmux: availability.insideCmux,
+    insideWarp: availability.insideWarp,
+    tmuxAvailable: availability.tmuxAvailable,
+    cmuxAvailable: availability.cmuxAvailable,
+    warpAvailable: availability.warpAvailable,
+  });
+
   if (plan.isWorkspace && plan.workspacePath) {
     await ensureDir(plan.workspacePath);
     const tplPath = resolved.resolvedWorkspaceClaudeTemplate;
@@ -122,17 +134,6 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     }
   }
 
-  const availability = await detectAvailability(args.config);
-  const backend = selectBackend({
-    flag: args.terminal,
-    configDefault: args.config.defaultTerminal,
-    insideTmux: availability.insideTmux,
-    insideCmux: availability.insideCmux,
-    insideWarp: availability.insideWarp,
-    tmuxAvailable: availability.tmuxAvailable,
-    cmuxAvailable: availability.cmuxAvailable,
-    warpAvailable: availability.warpAvailable,
-  });
   await dispatchBackend({
     backend,
     config: args.config,
