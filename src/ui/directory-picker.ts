@@ -89,7 +89,12 @@ export async function directoryPicker(opts: {
   let busy = false;
 
   const containingRepo = await findContainingRepo(cwd, gitCache);
-  if (containingRepo) selected.add(containingRepo);
+  if (containingRepo) {
+    selected.add(containingRepo);
+    // Start one level up so the repo itself is visible and selected in the list
+    const parent = dirname(containingRepo);
+    if (parent !== containingRepo) cwd = parent;
+  }
 
   entries = await listDir(cwd, gitCache);
   filtered = entries;
