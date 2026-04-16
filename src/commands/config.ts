@@ -1,5 +1,5 @@
-import { loadConfig } from "../core/config";
-import { info, success } from "../ui/log";
+import { loadConfig } from '../core/config';
+import { info, success } from '../ui/log';
 
 export async function runConfigCommand(): Promise<void> {
   const { config, created, path } = await loadConfig();

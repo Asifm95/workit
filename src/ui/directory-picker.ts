@@ -1,10 +1,10 @@
-import { readdir } from "node:fs/promises";
-import { basename, dirname, join, resolve } from "node:path";
-import { homedir } from "node:os";
-import * as readline from "node:readline";
-import pc from "picocolors";
-import { pathExists } from "../utils/fs";
-import type { Project } from "../core/project-discovery";
+import { readdir } from 'node:fs/promises';
+import { homedir } from 'node:os';
+import { basename, dirname, join, resolve } from 'node:path';
+import * as readline from 'node:readline';
+import pc from 'picocolors';
+import type { Project } from '../core/project-discovery';
+import { pathExists } from '../utils/fs';
 
 export interface DirEntry {
   name: string;
@@ -12,33 +12,27 @@ export interface DirEntry {
   isGitRepo: boolean;
 }
 
-const EXCLUDED = new Set(["node_modules"]);
+const EXCLUDED = new Set(['node_modules']);
 
 function isDotfile(name: string): boolean {
-  return name.startsWith(".");
+  return name.startsWith('.');
 }
 
 export function abbreviatePath(p: string, home: string): string {
-  if (p === home) return "~";
-  if (p.startsWith(home + "/")) return "~" + p.slice(home.length);
+  if (p === home) return '~';
+  if (p.startsWith(home + '/')) return '~' + p.slice(home.length);
   return p;
 }
 
-async function checkGit(
-  path: string,
-  cache: Map<string, boolean>,
-): Promise<boolean> {
+async function checkGit(path: string, cache: Map<string, boolean>): Promise<boolean> {
   const cached = cache.get(path);
   if (cached !== undefined) return cached;
-  const result = await pathExists(join(path, ".git"));
+  const result = await pathExists(join(path, '.git'));
   cache.set(path, result);
   return result;
 }
 
-export async function listDir(
-  dir: string,
-  cache: Map<string, boolean>,
-): Promise<DirEntry[]> {
+export async function listDir(dir: string, cache: Map<string, boolean>): Promise<DirEntry[]> {
   try {
     const raw = await readdir(dir, { withFileTypes: true });
     const dirs = raw
@@ -74,16 +68,14 @@ export async function findContainingRepo(
   return null;
 }
 
-export async function directoryPicker(opts: {
-  cwd: string;
-}): Promise<Project[]> {
+export async function directoryPicker(opts: { cwd: string }): Promise<Project[]> {
   const home = homedir();
   const gitCache = new Map<string, boolean>();
   const selected = new Set<string>();
   let cwd = resolve(opts.cwd);
   let entries: DirEntry[] = [];
   let filtered: DirEntry[] = [];
-  let search = "";
+  let search = '';
   let cursor = 0;
   let prevLineCount = 0;
   let busy = false;
@@ -105,7 +97,7 @@ export async function directoryPicker(opts: {
     readline.emitKeypressEvents(stdin);
     if (stdin.isTTY) stdin.setRawMode(true);
     stdin.resume();
-    stdout.write("\x1B[?25l"); // hide cursor
+    stdout.write('\x1B[?25l'); // hide cursor
 
     function render() {
       if (prevLineCount > 0) {
@@ -116,70 +108,63 @@ export async function directoryPicker(opts: {
       const selCount = selected.size;
       const cwdDisplay = abbreviatePath(cwd, home);
 
-      lines.push(
-        pc.bold("  Select git repos") +
-          pc.dim("  Tab toggle · Enter confirm"),
-      );
+      lines.push(pc.bold('  Select git repos') + pc.dim('  Tab toggle · Enter confirm'));
       lines.push(
         `  ${pc.cyan(cwdDisplay)}` +
-          (selCount > 0 ? `  ${pc.green(String(selCount) + " selected")}` : ""),
+          (selCount > 0 ? `  ${pc.green(String(selCount) + ' selected')}` : ''),
       );
-      lines.push("");
+      lines.push('');
 
       // Search input
       if (search) {
-        lines.push(`  ${pc.yellow("/")} ${search}${pc.dim("▌")}`);
+        lines.push(`  ${pc.yellow('/')} ${search}${pc.dim('▌')}`);
       } else {
-        lines.push(`  ${pc.dim("/ type to filter...")}`);
+        lines.push(`  ${pc.dim('/ type to filter...')}`);
       }
-      lines.push("");
+      lines.push('');
 
       // Parent directory entry
       const parentCursor = cursor === -1;
-      const parentPtr = parentCursor ? pc.cyan("❯") : " ";
-      lines.push(`  ${parentPtr} ${pc.dim("..")}  ${pc.dim("(parent)")}`);
+      const parentPtr = parentCursor ? pc.cyan('❯') : ' ';
+      lines.push(`  ${parentPtr} ${pc.dim('..')}  ${pc.dim('(parent)')}`);
 
       // Directory entries
       for (let i = 0; i < filtered.length; i++) {
         const entry = filtered[i]!;
         const isCursor = i === cursor;
-        const ptr = isCursor ? pc.cyan("❯") : " ";
+        const ptr = isCursor ? pc.cyan('❯') : ' ';
 
         if (entry.isGitRepo) {
           const isSel = selected.has(entry.path);
-          const check = isSel ? pc.green("[x]") : pc.dim("[ ]");
-          const name = isCursor ? pc.bold(pc.white(entry.name + "/")) : entry.name + "/";
-          lines.push(`  ${ptr} ${name}  ${check} ${pc.dim("git")}`);
+          const check = isSel ? pc.green('[x]') : pc.dim('[ ]');
+          const name = isCursor ? pc.bold(pc.white(entry.name + '/')) : entry.name + '/';
+          lines.push(`  ${ptr} ${name}  ${check} ${pc.dim('git')}`);
         } else {
-          const name = pc.dim(entry.name + "/");
-          lines.push(`  ${ptr} ${name}  ${pc.dim("dir")}`);
+          const name = pc.dim(entry.name + '/');
+          lines.push(`  ${ptr} ${name}  ${pc.dim('dir')}`);
         }
       }
 
       if (filtered.length === 0) {
-        lines.push(pc.dim("    (no matching directories)"));
+        lines.push(pc.dim('    (no matching directories)'));
       }
 
-      lines.push("");
-      lines.push(
-        pc.dim("  ↑↓ navigate · →/Enter enter dir · ←/Backspace parent · Tab select · Enter confirm"),
-      );
+      lines.push('');
+      lines.push(pc.dim('  ↑↓ navigate · →/ forward  · ←/ backward · Tab select · Enter confirm'));
 
-      stdout.write(lines.join("\n"));
+      stdout.write(lines.join('\n'));
       prevLineCount = lines.length;
     }
 
     function applyFilter() {
       const term = search.toLowerCase();
-      filtered = term
-        ? entries.filter((e) => e.name.toLowerCase().includes(term))
-        : entries;
+      filtered = term ? entries.filter((e) => e.name.toLowerCase().includes(term)) : entries;
       cursor = Math.min(cursor, Math.max(0, filtered.length - 1));
     }
 
     async function navigateInto(path: string) {
       cwd = path;
-      search = "";
+      search = '';
       entries = await listDir(cwd, gitCache);
       filtered = entries;
       cursor = 0;
@@ -189,17 +174,17 @@ export async function directoryPicker(opts: {
       const parent = dirname(cwd);
       if (parent === cwd) return;
       cwd = parent;
-      search = "";
+      search = '';
       entries = await listDir(cwd, gitCache);
       filtered = entries;
       cursor = 0;
     }
 
     function cleanup() {
-      stdin.removeListener("keypress", handleKey);
+      stdin.removeListener('keypress', handleKey);
       if (stdin.isTTY) stdin.setRawMode(false);
       stdin.pause();
-      stdout.write("\x1B[?25h\n"); // show cursor
+      stdout.write('\x1B[?25h\n'); // show cursor
     }
 
     async function handleKey(str: string | undefined, key: readline.Key) {
@@ -207,13 +192,13 @@ export async function directoryPicker(opts: {
       busy = true;
       try {
         // Ctrl+C / Escape — cancel
-        if ((key.ctrl && key.name === "c") || key.name === "escape") {
+        if ((key.ctrl && key.name === 'c') || key.name === 'escape') {
           cleanup();
           process.exit(0);
         }
 
         // Enter — confirm if selections exist, otherwise enter dir
-        if (key.name === "return") {
+        if (key.name === 'return') {
           if (selected.size > 0) {
             cleanup();
             resolvePromise(
@@ -234,7 +219,7 @@ export async function directoryPicker(opts: {
         }
 
         // Tab — toggle selection on git repos
-        if (key.name === "tab") {
+        if (key.name === 'tab') {
           const entry = filtered[cursor];
           if (entry?.isGitRepo) {
             if (selected.has(entry.path)) {
@@ -248,21 +233,21 @@ export async function directoryPicker(opts: {
         }
 
         // Up
-        if (key.name === "up") {
+        if (key.name === 'up') {
           cursor = Math.max(0, cursor - 1);
           render();
           return;
         }
 
         // Down
-        if (key.name === "down") {
+        if (key.name === 'down') {
           cursor = Math.min(filtered.length - 1, cursor + 1);
           render();
           return;
         }
 
         // Right — enter directory
-        if (key.name === "right") {
+        if (key.name === 'right') {
           const entry = filtered[cursor];
           if (entry) {
             await navigateInto(entry.path);
@@ -272,7 +257,7 @@ export async function directoryPicker(opts: {
         }
 
         // Left — parent (only when search is empty)
-        if (key.name === "left") {
+        if (key.name === 'left') {
           if (search.length === 0) {
             await navigateToParent();
             render();
@@ -281,7 +266,7 @@ export async function directoryPicker(opts: {
         }
 
         // Backspace — delete search char or go to parent
-        if (key.name === "backspace") {
+        if (key.name === 'backspace') {
           if (search.length > 0) {
             search = search.slice(0, -1);
             applyFilter();
@@ -304,7 +289,7 @@ export async function directoryPicker(opts: {
       }
     }
 
-    stdin.on("keypress", handleKey);
+    stdin.on('keypress', handleKey);
     render();
   });
 }

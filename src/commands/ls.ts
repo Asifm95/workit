@@ -1,12 +1,12 @@
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import type { Config } from "../core/config";
-import { resolveConfigPaths } from "../core/config";
-import { pathExists } from "../utils/fs";
-import { info } from "../ui/log";
+import { readdir } from 'node:fs/promises';
+import { join } from 'node:path';
+import type { Config } from '../core/config';
+import { resolveConfigPaths } from '../core/config';
+import { pathExists } from '../utils/fs';
+import { info } from '../ui/log';
 
 export interface ListEntry {
-  kind: "workspace" | "single";
+  kind: 'workspace' | 'single';
   name: string;
   path: string;
 }
@@ -20,7 +20,7 @@ export async function listEntries(config: Config): Promise<ListEntry[]> {
   for (const c of children) {
     if (!c.isDirectory()) continue;
     const full = join(root, c.name);
-    const kind = (await pathExists(join(full, ".git"))) ? "single" : "workspace";
+    const kind = (await pathExists(join(full, '.git'))) ? 'single' : 'workspace';
     out.push({ kind, name: c.name, path: full });
   }
   out.sort((a, b) => a.name.localeCompare(b.name));
@@ -30,11 +30,11 @@ export async function listEntries(config: Config): Promise<ListEntry[]> {
 export async function runLsCommand(config: Config): Promise<void> {
   const entries = await listEntries(config);
   if (entries.length === 0) {
-    info("No worktrees or workspaces found.");
+    info('No worktrees or workspaces found.');
     return;
   }
   for (const e of entries) {
-    const tag = e.kind === "workspace" ? "[workspace]" : "[worktree] ";
+    const tag = e.kind === 'workspace' ? '[workspace]' : '[worktree] ';
     console.log(`${tag} ${e.name}  ${e.path}`);
   }
 }

@@ -1,48 +1,42 @@
 #!/usr/bin/env bun
-import { resolve } from "node:path";
-import { Command } from "commander";
-import { loadConfig } from "./core/config";
-import { runNewCommand } from "./commands/new";
-import { runRmCommand } from "./commands/rm";
-import { runLsCommand } from "./commands/ls";
-import { runConfigCommand } from "./commands/config";
+import { resolve } from 'node:path';
+import { Command } from 'commander';
+import { loadConfig } from './core/config';
+import { runNewCommand } from './commands/new';
+import { runRmCommand } from './commands/rm';
+import { runLsCommand } from './commands/ls';
+import { runConfigCommand } from './commands/config';
 import {
   promptDescription,
   promptBranchType,
   promptProjectPicker,
   promptConfirm,
-} from "./ui/prompts";
-import { error } from "./ui/log";
-import type { BackendName } from "./terminal";
+} from './ui/prompts';
+import { error } from './ui/log';
+import type { BackendName } from './terminal';
 
 const program = new Command();
-program
-  .name("workit")
-  .description("Multi-project git worktree workflow manager")
-  .version("0.1.0");
+program.name('workit').description('Multi-project git worktree workflow manager').version('0.1.0');
 
 program
-  .command("new")
-  .description("Create worktree(s) for a new feature")
-  .argument("[description]", "feature description")
-  .option("--type <type>", "branch type (feat/fix/chore/...)")
-  .option("--projects <paths>", "comma-separated project paths")
-  .option("--terminal <backend>", "cmux|tmux|none")
-  .option("--dry-run", "print the plan without executing", false)
-  .option("-y, --yes", "skip confirmations", false)
+  .command('new')
+  .description('Create worktree(s) for a new feature')
+  .argument('[description]', 'feature description')
+  .option('--type <type>', 'branch type (feat/fix/chore/...)')
+  .option('--projects <paths>', 'comma-separated project paths')
+  .option('--terminal <backend>', 'cmux|tmux|none')
+  .option('--dry-run', 'print the plan without executing', false)
+  .option('-y, --yes', 'skip confirmations', false)
   .action(async (description: string | undefined, opts) => {
     try {
       const { config } = await loadConfig();
       const desc = await promptDescription(description);
-      const branchType = await promptBranchType(
-        opts.type,
-        config.defaultBranchType,
-      );
+      const branchType = await promptBranchType(opts.type, config.defaultBranchType);
 
       let projectPaths: string[];
       if (opts.projects) {
         projectPaths = String(opts.projects)
-          .split(",")
+          .split(',')
           .map((s) => resolve(s.trim()))
           .filter(Boolean);
       } else {
@@ -51,7 +45,7 @@ program
       }
 
       if (!opts.yes && !opts.dryRun) {
-        const go = await promptConfirm("Proceed?", true);
+        const go = await promptConfirm('Proceed?', true);
         if (!go) return;
       }
 
@@ -71,17 +65,17 @@ program
   });
 
 program
-  .command("rm")
-  .description("Remove a worktree or workspace")
-  .argument("[name]", "workspace or worktree name")
-  .option("--delete-branch", "also delete the git branch", false)
-  .option("--force", "skip dirty/unpushed checks", false)
-  .option("--dry-run", "print the plan without executing", false)
-  .option("-y, --yes", "skip confirmation", false)
+  .command('rm')
+  .description('Remove a worktree or workspace')
+  .argument('[name]', 'workspace or worktree name')
+  .option('--delete-branch', 'also delete the git branch', false)
+  .option('--force', 'skip dirty/unpushed checks', false)
+  .option('--dry-run', 'print the plan without executing', false)
+  .option('-y, --yes', 'skip confirmation', false)
   .action(async (name: string | undefined, opts) => {
     try {
       if (!name) {
-        error("missing name argument (interactive picker not yet implemented)");
+        error('missing name argument (interactive picker not yet implemented)');
         process.exit(1);
       }
       const { config } = await loadConfig();
@@ -104,16 +98,16 @@ program
   });
 
 program
-  .command("ls")
-  .description("List worktrees and workspaces")
+  .command('ls')
+  .description('List worktrees and workspaces')
   .action(async () => {
     const { config } = await loadConfig();
     await runLsCommand(config);
   });
 
 program
-  .command("config")
-  .description("Print config (creates default if missing)")
+  .command('config')
+  .description('Print config (creates default if missing)')
   .action(async () => {
     await runConfigCommand();
   });

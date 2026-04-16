@@ -1,13 +1,13 @@
-import { join } from "node:path";
-import { homedir } from "node:os";
-import { z } from "zod";
-import { expandUser, pathExists, readJsonFile, writeJsonFile } from "../utils/fs";
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { z } from 'zod';
+import { expandUser, pathExists, readJsonFile, writeJsonFile } from '../utils/fs';
 
 export const ConfigSchema = z
   .object({
     workspacesDir: z.string().min(1),
     defaultBranchType: z.string().min(1),
-    defaultTerminal: z.enum(["auto", "cmux", "tmux", "none"]),
+    defaultTerminal: z.enum(['auto', 'cmux', 'tmux', 'none']),
     terminalCommand: z.object({
       cmux: z.string().optional(),
     }),
@@ -21,24 +21,24 @@ export const ConfigSchema = z
 export type Config = z.infer<typeof ConfigSchema>;
 
 export const DEFAULT_CONFIG: Config = {
-  workspacesDir: "~/.workit/workspaces",
-  defaultBranchType: "feat",
-  defaultTerminal: "auto",
+  workspacesDir: '~/.workit/workspaces',
+  defaultBranchType: 'feat',
+  defaultTerminal: 'auto',
   terminalCommand: {
-    cmux: "/Applications/cmux.app/Contents/Resources/bin/cmux",
+    cmux: '/Applications/cmux.app/Contents/Resources/bin/cmux',
   },
   templates: {
-    workspaceClaudeMd: "~/.config/workit/templates/workspace-CLAUDE.md",
+    workspaceClaudeMd: '~/.config/workit/templates/workspace-CLAUDE.md',
   },
-  setupScriptPaths: ["./setup.sh", ".workit/setup.sh"],
+  setupScriptPaths: ['./setup.sh', '.workit/setup.sh'],
 };
 
 export function defaultConfigPath(): string {
-  return join(homedir(), ".config", "workit", "config.json");
+  return join(homedir(), '.config', 'workit', 'config.json');
 }
 
 export async function loadConfig(
-  path: string = defaultConfigPath()
+  path: string = defaultConfigPath(),
 ): Promise<{ config: Config; created: boolean; path: string }> {
   if (!(await pathExists(path))) {
     await writeJsonFile(path, DEFAULT_CONFIG);
@@ -53,8 +53,8 @@ export async function loadConfig(
   const parsed = ConfigSchema.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.issues
-      .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
-      .join("; ");
+      .map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`)
+      .join('; ');
     throw new Error(`Invalid config at ${path}: ${issues}`);
   }
   return { config: parsed.data, created: false, path };

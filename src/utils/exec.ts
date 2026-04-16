@@ -1,4 +1,4 @@
-import { execa, type Options } from "execa";
+import { execa, type Options } from 'execa';
 
 export type ExecOptions = Options;
 
@@ -11,15 +11,15 @@ export interface ExecResult {
 export async function run(
   file: string,
   args: readonly string[],
-  options: ExecOptions & { reject?: boolean } = {}
+  options: ExecOptions & { reject?: boolean } = {},
 ): Promise<ExecResult> {
   const result = await execa(file, args, {
     reject: true,
     ...options,
   } as Options);
   return {
-    stdout: String(result.stdout ?? ""),
-    stderr: String(result.stderr ?? ""),
+    stdout: String(result.stdout ?? ''),
+    stderr: String(result.stderr ?? ''),
     exitCode: result.exitCode ?? 0,
   };
 }
@@ -27,12 +27,12 @@ export async function run(
 export async function runCapture(
   file: string,
   args: readonly string[],
-  options: ExecOptions = {}
+  options: ExecOptions = {},
 ): Promise<ExecResult> {
   const result = await execa(file, args, { reject: true, ...options });
   return {
-    stdout: String(result.stdout ?? ""),
-    stderr: String(result.stderr ?? ""),
+    stdout: String(result.stdout ?? ''),
+    stderr: String(result.stderr ?? ''),
     exitCode: result.exitCode ?? 0,
   };
 }

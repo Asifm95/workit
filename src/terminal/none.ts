@@ -1,4 +1,4 @@
-import pc from "picocolors";
+import pc from 'picocolors';
 
 export interface TabSpec {
   name: string;
@@ -11,16 +11,16 @@ export interface NoneBackendArgs {
 }
 
 export function formatNoneBackendOutput(args: NoneBackendArgs): string {
-  const lines: string[] = [pc.bold("Created worktrees:")];
+  const lines: string[] = [pc.bold('Created worktrees:')];
   const width = Math.max(...args.tabs.map((t) => t.name.length));
   for (const tab of args.tabs) {
     const label = `[${tab.name}]`.padEnd(width + 3);
     lines.push(`  ${pc.cyan(label)} ${tab.cwd}`);
   }
-  lines.push("");
+  lines.push('');
   const cdTarget = args.workspacePath ?? args.tabs[0]!.cwd;
-  lines.push(`${pc.bold("Next:")} cd ${cdTarget}`);
-  return lines.join("\n");
+  lines.push(`${pc.bold('Next:')} cd ${cdTarget}`);
+  return lines.join('\n');
 }
 
 export function runNoneBackend(args: NoneBackendArgs): void {

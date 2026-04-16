@@ -1,4 +1,4 @@
-import pc from "picocolors";
+import pc from 'picocolors';
 
 export function prefixLine(name: string, line: string, width: number): string {
   const tag = `[${name}]`;

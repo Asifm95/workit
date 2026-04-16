@@ -1,22 +1,17 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import type { Config } from "../core/config";
-import { resolveConfigPaths } from "../core/config";
-import { slugify } from "../core/slug";
-import { buildNewPlan, formatNewPlan } from "../core/plan";
-import type { Project } from "../core/project-discovery";
-import { ensureDir, pathExists } from "../utils/fs";
-import { addWorktree } from "../git/worktree";
-import { branchExists, isGitRepo } from "../git/repo";
-import { runSetupScripts, type SetupResult } from "../setup/runner";
-import { renderTemplate } from "../templates/render";
-import {
-  detectAvailability,
-  dispatchBackend,
-  selectBackend,
-  type BackendName,
-} from "../terminal";
-import { colorFor, info, hint, warn, success } from "../ui/log";
+import { readFile, writeFile } from 'node:fs/promises';
+import { basename, join } from 'node:path';
+import type { Config } from '../core/config';
+import { resolveConfigPaths } from '../core/config';
+import { slugify } from '../core/slug';
+import { buildNewPlan, formatNewPlan } from '../core/plan';
+import type { Project } from '../core/project-discovery';
+import { ensureDir, pathExists } from '../utils/fs';
+import { addWorktree } from '../git/worktree';
+import { branchExists, isGitRepo } from '../git/repo';
+import { runSetupScripts, type SetupResult } from '../setup/runner';
+import { renderTemplate } from '../templates/render';
+import { detectAvailability, dispatchBackend, selectBackend, type BackendName } from '../terminal';
+import { colorFor, info, hint, warn, success } from '../ui/log';
 
 export interface RunNewArgs {
   config: Config;
@@ -38,7 +33,7 @@ function toTitleCase(input: string): string {
   return input
     .split(/\s+/)
     .map((w) => (w.length > 0 ? w[0]!.toUpperCase() + w.slice(1) : w))
-    .join(" ")
+    .join(' ')
     .trim();
 }
 
@@ -81,7 +76,7 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     await ensureDir(plan.workspacePath);
     const tplPath = resolved.resolvedWorkspaceClaudeTemplate;
     if (await pathExists(tplPath)) {
-      const tpl = await readFile(tplPath, "utf8");
+      const tpl = await readFile(tplPath, 'utf8');
       const rendered = renderTemplate(tpl, {
         feature_title: toTitleCase(args.description),
         feature_slug: slug,
@@ -93,7 +88,7 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
           branch: t.branch,
         })),
       });
-      await writeFile(join(plan.workspacePath, "CLAUDE.md"), rendered);
+      await writeFile(join(plan.workspacePath, 'CLAUDE.md'), rendered);
     } else {
       warn(`template not found at ${tplPath}; skipping CLAUDE.md`);
     }
@@ -105,8 +100,8 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
         mainRepoPath: t.project.path,
         targetPath: t.targetPath,
         branch: t.branch,
-      })
-    )
+      }),
+    ),
   );
 
   const setupResults = await runSetupScripts({
@@ -118,10 +113,10 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     },
   });
   for (const r of setupResults) {
-    if (r.status === "missing") {
+    if (r.status === 'missing') {
       hint(`no setup script in ${r.name} — create one to automate this step`);
-    } else if (r.status === "failed") {
-      warn(`setup failed in ${r.name}: ${r.error ?? "unknown error"}`);
+    } else if (r.status === 'failed') {
+      warn(`setup failed in ${r.name}: ${r.error ?? 'unknown error'}`);
     } else {
       success(`${r.name} setup complete`);
     }

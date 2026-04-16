@@ -1,18 +1,16 @@
-import * as p from "@clack/prompts";
-import type { Project } from "../core/project-discovery";
-import { directoryPicker } from "./directory-picker";
+import * as p from '@clack/prompts';
+import type { Project } from '../core/project-discovery';
+import { directoryPicker } from './directory-picker';
 
-export async function promptDescription(
-  initial?: string
-): Promise<string> {
+export async function promptDescription(initial?: string): Promise<string> {
   if (initial) return initial;
   const result = await p.text({
-    message: "Feature description",
-    placeholder: "Add DAC7 reporting",
-    validate: (v) => (v.trim().length === 0 ? "required" : undefined),
+    message: 'Feature description',
+    placeholder: 'Add DAC7 reporting',
+    validate: (v) => (v.trim().length === 0 ? 'required' : undefined),
   });
   if (p.isCancel(result)) {
-    p.cancel("Cancelled");
+    p.cancel('Cancelled');
     process.exit(1);
   }
   return result as string;
@@ -20,41 +18,36 @@ export async function promptDescription(
 
 export async function promptBranchType(
   initial: string | undefined,
-  defaultValue: string
+  defaultValue: string,
 ): Promise<string> {
   if (initial) return initial;
   const result = await p.select({
-    message: "Branch type",
+    message: 'Branch type',
     initialValue: defaultValue,
     options: [
-      { value: "feat", label: "feat" },
-      { value: "fix", label: "fix" },
-      { value: "chore", label: "chore" },
-      { value: "ref", label: "ref" },
-      { value: "docs", label: "docs" },
-      { value: "test", label: "test" },
+      { value: 'feat', label: 'feat' },
+      { value: 'fix', label: 'fix' },
+      { value: 'chore', label: 'chore' },
+      { value: 'ref', label: 'ref' },
+      { value: 'docs', label: 'docs' },
+      { value: 'test', label: 'test' },
     ],
   });
   if (p.isCancel(result)) {
-    p.cancel("Cancelled");
+    p.cancel('Cancelled');
     process.exit(1);
   }
   return result as string;
 }
 
-export async function promptProjectPicker(
-  cwd: string,
-): Promise<Project[]> {
+export async function promptProjectPicker(cwd: string): Promise<Project[]> {
   return directoryPicker({ cwd });
 }
 
-export async function promptConfirm(
-  message: string,
-  initialValue = true
-): Promise<boolean> {
+export async function promptConfirm(message: string, initialValue = true): Promise<boolean> {
   const result = await p.confirm({ message, initialValue });
   if (p.isCancel(result)) {
-    p.cancel("Cancelled");
+    p.cancel('Cancelled');
     process.exit(1);
   }
   return result as boolean;
