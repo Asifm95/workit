@@ -1,0 +1,10 @@
+#!/usr/bin/env bun
+if (typeof globalThis.Bun === 'undefined') {
+  process.stderr.write(
+    'workit requires the Bun runtime.\n' +
+      'Install Bun: https://bun.sh\n' +
+      'Or download a prebuilt binary: https://github.com/Asifm95/workit/releases\n',
+  );
+  process.exit(1);
+}
+import('../src/cli.ts');

@@ -4,23 +4,35 @@ CLI workflow manager for multi-project git worktrees.
 
 ## Install
 
+### Bun (recommended)
+
+```bash
+bun install -g workit
+```
+
+Requires [Bun](https://bun.sh) ≥ 1.1.
+
+### Prebuilt binary (no Bun required)
+
+Download the binary matching your platform from the [latest release](https://github.com/Asifm95/workit/releases/latest):
+
+- macOS Apple Silicon: `workit-darwin-arm64`
+- macOS Intel: `workit-darwin-x64`
+- Linux x64: `workit-linux-x64`
+- Linux ARM64: `workit-linux-arm64`
+- Windows x64: `workit-windows-x64.exe`
+
+Then `chmod +x workit-<your-platform>` and move it onto your `PATH`.
+
+### Homebrew (future)
+
+Planned: `brew install <your-tap>/workit` — wraps the prebuilt binary above.
+
 ### From source (Bun)
 
 ```bash
 bun install
 bun run dev -- new
-```
-
-### npm (global)
-
-```bash
-npm install -g workit
-```
-
-### Homebrew (tap)
-
-```bash
-brew install <your-tap>/workit
 ```
 
 ## Usage

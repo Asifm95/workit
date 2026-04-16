@@ -4,14 +4,24 @@
   "description": "CLI workflow manager for multi-project git worktrees",
   "type": "module",
   "bin": {
-    "workit": "./dist/cli.js"
+    "workit": "./bin/workit"
   },
+  "files": [
+    "src/",
+    "bin/",
+    "bunfig.toml",
+    "tsconfig.json"
+  ],
   "scripts": {
     "dev": "bun run src/cli.ts",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "build:npm": "bun build src/cli.ts --target=node --outfile=dist/cli.js && sed -i '' 's|#!/usr/bin/env bun|#!/usr/bin/env node|' dist/cli.js",
-    "build:binary": "bun build src/cli.ts --compile --outfile=dist/workit",
+    "build:binary:darwin-arm64": "bun build src/cli.ts --compile --target=bun-darwin-arm64 --outfile=dist/workit-darwin-arm64",
+    "build:binary:darwin-x64": "bun build src/cli.ts --compile --target=bun-darwin-x64 --outfile=dist/workit-darwin-x64",
+    "build:binary:linux-x64": "bun build src/cli.ts --compile --target=bun-linux-x64 --outfile=dist/workit-linux-x64",
+    "build:binary:linux-arm64": "bun build src/cli.ts --compile --target=bun-linux-arm64 --outfile=dist/workit-linux-arm64",
+    "build:binary:windows-x64": "bun build src/cli.ts --compile --target=bun-windows-x64 --outfile=dist/workit-windows-x64.exe",
+    "build:binaries": "bun run build:binary:darwin-arm64 && bun run build:binary:darwin-x64 && bun run build:binary:linux-x64 && bun run build:binary:linux-arm64 && bun run build:binary:windows-x64",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
