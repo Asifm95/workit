@@ -6,7 +6,7 @@ import pc from "picocolors";
 import { pathExists } from "../utils/fs";
 import type { Project } from "../core/project-discovery";
 
-interface DirEntry {
+export interface DirEntry {
   name: string;
   path: string;
   isGitRepo: boolean;
@@ -18,7 +18,7 @@ function isDotfile(name: string): boolean {
   return name.startsWith(".");
 }
 
-function abbreviatePath(p: string, home: string): string {
+export function abbreviatePath(p: string, home: string): string {
   if (p === home) return "~";
   if (p.startsWith(home + "/")) return "~" + p.slice(home.length);
   return p;
@@ -35,7 +35,7 @@ async function checkGit(
   return result;
 }
 
-async function listDir(
+export async function listDir(
   dir: string,
   cache: Map<string, boolean>,
 ): Promise<DirEntry[]> {
@@ -60,20 +60,17 @@ async function listDir(
   }
 }
 
-async function findContainingRepo(
+export async function findContainingRepo(
   startPath: string,
   cache: Map<string, boolean>,
 ): Promise<string | null> {
   let current = resolve(startPath);
-  const root = dirname(current);
-  while (current !== root) {
+  while (true) {
     if (await checkGit(current, cache)) return current;
     const parent = dirname(current);
-    if (parent === current) break;
+    if (parent === current) break; // reached filesystem root
     current = parent;
   }
-  // Check root as well
-  if (await checkGit(current, cache)) return current;
   return null;
 }
 
