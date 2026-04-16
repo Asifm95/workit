@@ -49,12 +49,15 @@ export async function promptProjectPicker(cwd: string): Promise<Project[]> {
 export interface ShellAvailability {
   cmuxAvailable: boolean;
   tmuxAvailable: boolean;
+  warpAvailable: boolean;
   insideCmux: boolean;
   insideTmux: boolean;
+  insideWarp: boolean;
 }
 
 export function computeShellDefault(a: ShellAvailability): BackendName {
   if (a.insideCmux && a.cmuxAvailable) return 'cmux';
+  if (a.insideWarp && a.warpAvailable) return 'warp';
   if (a.tmuxAvailable) return 'tmux';
   if (a.cmuxAvailable) return 'cmux';
   return 'none';
@@ -71,6 +74,11 @@ export async function promptShell(a: ShellAvailability): Promise<BackendName> {
       value: 'tmux' as const,
       label: 'tmux',
       hint: a.tmuxAvailable ? (a.insideTmux ? 'current session' : undefined) : 'not installed',
+    },
+    {
+      value: 'warp' as const,
+      label: 'warp',
+      hint: a.warpAvailable ? (a.insideWarp ? 'current session' : undefined) : 'not installed',
     },
     {
       value: 'none' as const,
@@ -93,6 +101,10 @@ export async function promptShell(a: ShellAvailability): Promise<BackendName> {
     }
     if (chosen === 'tmux' && !a.tmuxAvailable) {
       warn('tmux is not installed');
+      continue;
+    }
+    if (chosen === 'warp' && !a.warpAvailable) {
+      warn('Warp is not installed');
       continue;
     }
     return chosen;

@@ -25,7 +25,7 @@ program
   .argument('[description]', 'feature description')
   .option('--type <type>', 'branch type (feat/fix/chore/...)')
   .option('--projects <paths>', 'comma-separated project paths')
-  .option('--terminal <backend>', 'cmux|tmux|none')
+  .option('--terminal <backend>', 'cmux|tmux|warp|none')
   .option('--dry-run', 'print the plan without executing', false)
   .option('-y, --yes', 'skip confirmations', false)
   .action(async (description: string | undefined, opts) => {

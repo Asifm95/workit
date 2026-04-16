@@ -1,14 +1,23 @@
 import { describe, expect, test } from "bun:test";
 import { computeShellDefault } from "../../../src/ui/prompts";
 
+const base = {
+  cmuxAvailable: false,
+  tmuxAvailable: false,
+  warpAvailable: false,
+  insideCmux: false,
+  insideTmux: false,
+  insideWarp: false,
+};
+
 describe("computeShellDefault", () => {
   test("insideCmux + cmux available → cmux", () => {
     expect(
       computeShellDefault({
+        ...base,
         cmuxAvailable: true,
         tmuxAvailable: true,
         insideCmux: true,
-        insideTmux: false,
       }),
     ).toBe("cmux");
   });
@@ -16,21 +25,44 @@ describe("computeShellDefault", () => {
   test("insideTmux (not cmux) + tmux available → tmux", () => {
     expect(
       computeShellDefault({
+        ...base,
         cmuxAvailable: true,
         tmuxAvailable: true,
-        insideCmux: false,
         insideTmux: true,
       }),
     ).toBe("tmux");
   });
 
-  test("not inside either + both available → tmux", () => {
+  test("insideWarp + warp available → warp", () => {
     expect(
       computeShellDefault({
+        ...base,
         cmuxAvailable: true,
         tmuxAvailable: true,
-        insideCmux: false,
-        insideTmux: false,
+        warpAvailable: true,
+        insideWarp: true,
+      }),
+    ).toBe("warp");
+  });
+
+  test("insideWarp but only tmux/cmux available → tmux (warp not in fallback)", () => {
+    expect(
+      computeShellDefault({
+        ...base,
+        cmuxAvailable: true,
+        tmuxAvailable: true,
+        warpAvailable: false,
+        insideWarp: true,
+      }),
+    ).toBe("tmux");
+  });
+
+  test("not inside any + both available → tmux", () => {
+    expect(
+      computeShellDefault({
+        ...base,
+        cmuxAvailable: true,
+        tmuxAvailable: true,
       }),
     ).toBe("tmux");
   });
@@ -38,10 +70,8 @@ describe("computeShellDefault", () => {
   test("only cmux available → cmux", () => {
     expect(
       computeShellDefault({
+        ...base,
         cmuxAvailable: true,
-        tmuxAvailable: false,
-        insideCmux: false,
-        insideTmux: false,
       }),
     ).toBe("cmux");
   });
@@ -49,33 +79,32 @@ describe("computeShellDefault", () => {
   test("only tmux available → tmux", () => {
     expect(
       computeShellDefault({
-        cmuxAvailable: false,
+        ...base,
         tmuxAvailable: true,
-        insideCmux: false,
-        insideTmux: false,
       }),
     ).toBe("tmux");
+  });
+
+  test("only warp available (not inside) → none (warp absent from fallback)", () => {
+    expect(
+      computeShellDefault({
+        ...base,
+        warpAvailable: true,
+      }),
+    ).toBe("none");
   });
 
   test("insideCmux but cmux not available → falls back to tmux", () => {
     expect(
       computeShellDefault({
-        cmuxAvailable: false,
+        ...base,
         tmuxAvailable: true,
         insideCmux: true,
-        insideTmux: false,
       }),
     ).toBe("tmux");
   });
 
-  test("neither available → none", () => {
-    expect(
-      computeShellDefault({
-        cmuxAvailable: false,
-        tmuxAvailable: false,
-        insideCmux: false,
-        insideTmux: false,
-      }),
-    ).toBe("none");
+  test("nothing available → none", () => {
+    expect(computeShellDefault({ ...base })).toBe("none");
   });
 });

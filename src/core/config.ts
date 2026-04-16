@@ -7,9 +7,10 @@ export const ConfigSchema = z
   .object({
     workspacesDir: z.string().min(1),
     defaultBranchType: z.string().min(1),
-    defaultTerminal: z.enum(['auto', 'cmux', 'tmux', 'none']),
+    defaultTerminal: z.enum(['auto', 'cmux', 'tmux', 'warp', 'none']),
     terminalCommand: z.object({
       cmux: z.string().optional(),
+      warp: z.string().optional(),
     }),
     templates: z.object({
       workspaceClaudeMd: z.string().min(1),

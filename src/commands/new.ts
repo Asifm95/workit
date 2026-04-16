@@ -128,8 +128,10 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     configDefault: args.config.defaultTerminal,
     insideTmux: availability.insideTmux,
     insideCmux: availability.insideCmux,
+    insideWarp: availability.insideWarp,
     tmuxAvailable: availability.tmuxAvailable,
     cmuxAvailable: availability.cmuxAvailable,
+    warpAvailable: availability.warpAvailable,
   });
   await dispatchBackend({
     backend,
