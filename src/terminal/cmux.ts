@@ -21,7 +21,7 @@ export function planCmuxCommands(args: PlanCmuxArgs): CmuxPlanStep[] {
 
   plan.push({
     kind: 'new-workspace',
-    args: ['new-workspace', '--name', workspaceName, '--cwd', first.cwd, '--id-format', 'refs'],
+    args: ['new-workspace', '--name', workspaceName, '--cwd', first.cwd],
   });
   plan.push({
     kind: 'rename-first-tab',
@@ -70,14 +70,14 @@ export async function runCmuxBackend(args: RunCmuxArgs): Promise<void> {
 
   const createRes = await execa(
     binary,
-    ['new-workspace', '--name', featureSlug, '--cwd', first.cwd, '--id-format', 'refs'],
+    ['new-workspace', '--name', featureSlug, '--cwd', first.cwd],
     { reject: true },
   );
   const workspace = parseRef(String(createRes.stdout ?? ''));
 
   const firstSurfaceRes = await execa(
     binary,
-    ['list-surfaces', '--workspace', workspace, '--id-format', 'refs'],
+    ['list-surfaces', '--workspace', workspace],
     { reject: false },
   );
   const firstSurface =
