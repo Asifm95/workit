@@ -1,5 +1,6 @@
 import * as p from "@clack/prompts";
 import type { Project } from "../core/project-discovery";
+import { directoryPicker } from "./directory-picker";
 
 export async function promptDescription(
   initial?: string
@@ -42,10 +43,9 @@ export async function promptBranchType(
 }
 
 export async function promptProjectPicker(
-  _cwd: string,
+  cwd: string,
 ): Promise<Project[]> {
-  // TODO: Replace with DirectoryPicker in Phase 2
-  throw new Error("Interactive project picker not yet implemented");
+  return directoryPicker({ cwd });
 }
 
 export async function promptConfirm(
