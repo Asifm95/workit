@@ -1,19 +1,20 @@
 #!/usr/bin/env bun
-import { resolve } from 'node:path';
 import { Command } from 'commander';
-import { loadConfig } from './core/config';
+import { resolve } from 'node:path';
+import { runConfigCommand } from './commands/config';
+import { runLsCommand } from './commands/ls';
 import { runNewCommand } from './commands/new';
 import { runRmCommand } from './commands/rm';
-import { runLsCommand } from './commands/ls';
-import { runConfigCommand } from './commands/config';
-import {
-  promptDescription,
-  promptBranchType,
-  promptProjectPicker,
-  promptConfirm,
-} from './ui/prompts';
+import { loadConfig } from './core/config';
+import { detectAvailability, type BackendName } from './terminal';
 import { error } from './ui/log';
-import type { BackendName } from './terminal';
+import {
+  promptBranchType,
+  promptConfirm,
+  promptDescription,
+  promptProjectPicker,
+  promptShell,
+} from './ui/prompts';
 
 const program = new Command();
 program.name('workit').description('Multi-project git worktree workflow manager').version('0.1.0');
@@ -44,6 +45,14 @@ program
         projectPaths = picked.map((p) => p.path);
       }
 
+      let terminal = opts.terminal as BackendName | undefined;
+      if (!terminal && config.defaultTerminal === 'auto') {
+        const avail = await detectAvailability(config);
+        if (avail.cmuxAvailable || avail.tmuxAvailable) {
+          terminal = await promptShell(avail);
+        }
+      }
+
       if (!opts.yes && !opts.dryRun) {
         const go = await promptConfirm('Proceed?', true);
         if (!go) return;
@@ -54,7 +63,7 @@ program
         description: desc,
         branchType,
         projectPaths,
-        terminal: opts.terminal as BackendName | undefined,
+        terminal,
         assumeYes: Boolean(opts.yes),
         dryRun: Boolean(opts.dryRun),
       });

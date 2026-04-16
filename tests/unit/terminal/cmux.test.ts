@@ -16,7 +16,6 @@ describe("planCmuxCommands", () => {
         "new-workspace",
         "--name", "add-dac7",
         "--cwd", "/w/a",
-        "--id-format", "refs",
       ],
     });
     expect(plan[1]).toEqual({

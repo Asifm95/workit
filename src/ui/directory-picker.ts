@@ -122,6 +122,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
       const bar = pc.cyan(S_BAR);
       const body = (text: string) => `${bar}  ${text}`;
 
+      lines.push(pc.gray(S_BAR));
       lines.push(
         `${pc.cyan(S_STEP_ACTIVE)}  ${pc.bold('Select git repos')}${pc.dim('  Tab toggle · Enter confirm')}`,
       );
@@ -208,6 +209,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
         .map((p) => abbreviatePath(p, home))
         .join(pc.dim(', '));
       const lines = [
+        bar,
         `${pc.green(S_STEP_SUBMIT)}  ${pc.bold('Select git repos')}`,
         `${bar}  ${pc.dim(summary)}`,
       ];
