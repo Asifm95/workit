@@ -1,10 +1,13 @@
 {
-  "name": "workit",
-  "version": "0.1.0",
+  "name": "@asifm95/workit",
+  "version": "0.2.1",
   "description": "CLI workflow manager for multi-project git worktrees",
   "type": "module",
   "bin": {
     "workit": "./bin/workit"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "src/",
