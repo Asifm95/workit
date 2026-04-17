@@ -12,7 +12,12 @@ export interface DirEntry {
   isGitRepo: boolean;
 }
 
-const EXCLUDED = new Set(['node_modules', '.git']);
+const EXCLUDED = new Set(['node_modules']);
+const DOT_ALLOWLIST = new Set(['.workit']);
+
+function isDotfile(name: string): boolean {
+  return name.startsWith('.');
+}
 
 const S_BAR = '│';
 const S_BAR_END = '└';
@@ -43,7 +48,12 @@ export async function listDir(dir: string, cache: Map<string, boolean>): Promise
   try {
     const raw = await readdir(dir, { withFileTypes: true });
     const dirs = raw
-      .filter((e) => e.isDirectory() && !EXCLUDED.has(e.name))
+      .filter(
+        (e) =>
+          e.isDirectory() &&
+          !EXCLUDED.has(e.name) &&
+          (!isDotfile(e.name) || DOT_ALLOWLIST.has(e.name)),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const entries: DirEntry[] = [];

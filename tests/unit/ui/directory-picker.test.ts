@@ -24,9 +24,10 @@ describe("listDir", () => {
     await mkdir(join(root, "frontend", ".git")); // git repo
     await mkdir(join(root, "shared-libs")); // plain dir
     await mkdir(join(root, "node_modules")); // should be excluded
-    await mkdir(join(root, ".config")); // dot-dir should be visible
-    await mkdir(join(root, ".hidden")); // dot-dir should be visible
-    await mkdir(join(root, ".git")); // .git should be excluded even at listed level
+    await mkdir(join(root, ".workit")); // allowlisted dot-dir should be visible
+    await mkdir(join(root, ".config")); // non-allowlisted dot-dir should be hidden
+    await mkdir(join(root, ".hidden")); // non-allowlisted dot-dir should be hidden
+    await mkdir(join(root, ".git")); // .git should be hidden
   });
 
   afterEach(async () => {
@@ -36,7 +37,7 @@ describe("listDir", () => {
   test("lists directories with git repo detection", async () => {
     const entries = await listDir(root, cache);
     const names = entries.map((e) => e.name);
-    expect(names).toEqual([".config", ".hidden", "api", "frontend", "shared-libs"]);
+    expect(names).toEqual([".workit", "api", "frontend", "shared-libs"]);
     expect(entries.find((e) => e.name === "api")!.isGitRepo).toBe(true);
     expect(entries.find((e) => e.name === "frontend")!.isGitRepo).toBe(true);
     expect(entries.find((e) => e.name === "shared-libs")!.isGitRepo).toBe(false);
@@ -47,13 +48,18 @@ describe("listDir", () => {
     expect(entries.find((e) => e.name === "node_modules")).toBeUndefined();
   });
 
-  test("includes dot-directories", async () => {
+  test("includes allowlisted dot-directories (.workit)", async () => {
     const entries = await listDir(root, cache);
-    expect(entries.find((e) => e.name === ".hidden")).toBeDefined();
-    expect(entries.find((e) => e.name === ".config")).toBeDefined();
+    expect(entries.find((e) => e.name === ".workit")).toBeDefined();
   });
 
-  test("excludes .git", async () => {
+  test("hides non-allowlisted dot-directories", async () => {
+    const entries = await listDir(root, cache);
+    expect(entries.find((e) => e.name === ".config")).toBeUndefined();
+    expect(entries.find((e) => e.name === ".hidden")).toBeUndefined();
+  });
+
+  test("hides .git", async () => {
     const entries = await listDir(root, cache);
     expect(entries.find((e) => e.name === ".git")).toBeUndefined();
   });
