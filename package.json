@@ -3,6 +3,14 @@
   "version": "0.2.1",
   "description": "CLI workflow manager for multi-project git worktrees",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Asifm95/workit.git"
+  },
+  "homepage": "https://github.com/Asifm95/workit",
+  "bugs": {
+    "url": "https://github.com/Asifm95/workit/issues"
+  },
   "type": "module",
   "bin": {
     "workit": "./bin/workit"
