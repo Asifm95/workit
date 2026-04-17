@@ -2,6 +2,7 @@
   "name": "@asifm95/workit",
   "version": "0.2.1",
   "description": "CLI workflow manager for multi-project git worktrees",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "workit": "./bin/workit"
