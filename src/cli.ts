@@ -28,6 +28,7 @@ program
   .option('--projects <paths>', 'comma-separated project paths')
   .option('--terminal <backend>', 'cmux|tmux|warp|none')
   .option('--dry-run', 'print the plan without executing', false)
+  .option('--sync-setup', 'wait for setup scripts to finish before exiting', false)
   .option('-y, --yes', 'skip confirmations', false)
   .action(async (description: string | undefined, opts) => {
     try {
@@ -67,6 +68,7 @@ program
         terminal,
         assumeYes: Boolean(opts.yes),
         dryRun: Boolean(opts.dryRun),
+        syncSetup: Boolean(opts.syncSetup),
       });
     } catch (e: any) {
       error(e.message ?? String(e));

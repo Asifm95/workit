@@ -20,6 +20,7 @@ export interface RunNewArgs {
   terminal?: BackendName;
   assumeYes: boolean;
   dryRun?: boolean;
+  syncSetup?: boolean;
 }
 
 export interface RunNewResult {
@@ -115,9 +116,12 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     ),
   );
 
+  const mode: 'async' | 'sync' = args.syncSetup ? 'sync' : 'async';
   const setupResults = await runSetupScripts({
     targets: plan.targets.map((t) => ({ name: t.project.name, cwd: t.targetPath })),
     scriptPaths: resolved.setupScriptPaths,
+    featureSlug: slug,
+    mode,
     onLine: (name, line) => {
       const c = colorFor(name);
       console.log(c(`[${name}]`) + ` ${line}`);
@@ -126,6 +130,10 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
   for (const r of setupResults) {
     if (r.status === 'missing') {
       hint(`no setup script in ${r.name} — create one to automate this step`);
+    } else if (r.status === 'failed-to-start') {
+      warn(`could not start setup in ${r.name}: ${r.error ?? 'unknown error'}`);
+    } else if (r.status === 'spawned') {
+      info(`setup started in ${r.name} → tail -f ${r.logPath}`);
     } else if (r.status === 'failed') {
       warn(`setup failed in ${r.name}: ${r.error ?? 'unknown error'}`);
     } else {
