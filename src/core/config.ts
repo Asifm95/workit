@@ -16,6 +16,11 @@ export const ConfigSchema = z
       workspaceClaudeMd: z.string().min(1),
     }),
     setupScriptPaths: z.array(z.string().min(1)).min(1),
+    directoryPicker: z
+      .object({
+        dotAllowlist: z.array(z.string().min(1)).default(['.workit']),
+      })
+      .default({ dotAllowlist: ['.workit'] }),
   })
   .passthrough();
 
@@ -32,6 +37,9 @@ export const DEFAULT_CONFIG: Config = {
     workspaceClaudeMd: '~/.config/workit/templates/workspace-CLAUDE.md',
   },
   setupScriptPaths: ['./setup.sh', '.workit/setup.sh'],
+  directoryPicker: {
+    dotAllowlist: ['.workit'],
+  },
 };
 
 export function defaultConfigPath(): string {

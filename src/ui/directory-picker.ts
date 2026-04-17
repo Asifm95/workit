@@ -14,19 +14,25 @@ export interface DirEntry {
 
 const EXCLUDED = new Set(['node_modules']);
 
+function isDotfile(name: string): boolean {
+  return name.startsWith('.');
+}
+
 const S_BAR = '│';
 const S_BAR_END = '└';
 const S_STEP_ACTIVE = '◆';
 const S_STEP_SUBMIT = '◇';
 
-function isDotfile(name: string): boolean {
-  return name.startsWith('.');
-}
-
 export function abbreviatePath(p: string, home: string): string {
   if (p === home) return '~';
   if (p.startsWith(home + '/')) return '~' + p.slice(home.length);
   return p;
+}
+
+export function resolveCursor(entries: DirEntry[], cameFromName: string | null): number {
+  if (!cameFromName) return 0;
+  const idx = entries.findIndex((e) => e.name === cameFromName);
+  return idx >= 0 ? idx : 0;
 }
 
 async function checkGit(path: string, cache: Map<string, boolean>): Promise<boolean> {
@@ -37,11 +43,20 @@ async function checkGit(path: string, cache: Map<string, boolean>): Promise<bool
   return result;
 }
 
-export async function listDir(dir: string, cache: Map<string, boolean>): Promise<DirEntry[]> {
+export async function listDir(
+  dir: string,
+  cache: Map<string, boolean>,
+  dotAllowlist: Set<string>,
+): Promise<DirEntry[]> {
   try {
     const raw = await readdir(dir, { withFileTypes: true });
     const dirs = raw
-      .filter((e) => e.isDirectory() && !EXCLUDED.has(e.name) && !isDotfile(e.name))
+      .filter(
+        (e) =>
+          e.isDirectory() &&
+          !EXCLUDED.has(e.name) &&
+          (!isDotfile(e.name) || dotAllowlist.has(e.name)),
+      )
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const entries: DirEntry[] = [];
@@ -73,10 +88,14 @@ export async function findContainingRepo(
   return null;
 }
 
-export async function directoryPicker(opts: { cwd: string }): Promise<Project[]> {
+export async function directoryPicker(opts: {
+  cwd: string;
+  dotAllowlist: Set<string>;
+}): Promise<Project[]> {
   const home = homedir();
   const gitCache = new Map<string, boolean>();
   const selected = new Set<string>();
+  const dotAllowlist = opts.dotAllowlist;
   let cwd = resolve(opts.cwd);
   let entries: DirEntry[] = [];
   let filtered: DirEntry[] = [];
@@ -85,16 +104,21 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
   let prevLineCount = 0;
   let busy = false;
 
+  let cameFromBasename: string | null = null;
   const containingRepo = await findContainingRepo(cwd, gitCache);
   if (containingRepo) {
     selected.add(containingRepo);
     // Start one level up so the repo itself is visible and selected in the list
     const parent = dirname(containingRepo);
-    if (parent !== containingRepo) cwd = parent;
+    if (parent !== containingRepo) {
+      cameFromBasename = basename(containingRepo);
+      cwd = parent;
+    }
   }
 
-  entries = await listDir(cwd, gitCache);
+  entries = await listDir(cwd, gitCache, dotAllowlist);
   filtered = entries;
+  cursor = resolveCursor(filtered, cameFromBasename);
 
   return new Promise<Project[]>((resolvePromise) => {
     const { stdin, stdout } = process;
@@ -187,7 +211,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
     async function navigateInto(path: string) {
       cwd = path;
       search = '';
-      entries = await listDir(cwd, gitCache);
+      entries = await listDir(cwd, gitCache, dotAllowlist);
       filtered = entries;
       cursor = 0;
     }
@@ -195,11 +219,12 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
     async function navigateToParent() {
       const parent = dirname(cwd);
       if (parent === cwd) return;
+      const cameFrom = basename(cwd);
       cwd = parent;
       search = '';
-      entries = await listDir(cwd, gitCache);
+      entries = await listDir(cwd, gitCache, dotAllowlist);
       filtered = entries;
-      cursor = 0;
+      cursor = resolveCursor(filtered, cameFrom);
     }
 
     function renderSubmit() {

@@ -1,0 +1,59 @@
+---
+date: 2026-04-17
+topic: directory-picker-improvements
+---
+
+# Directory Picker Improvements
+
+## Problem Frame
+
+Two small UX rough edges remain in the picker shipped via the 2026-04-16 brainstorm:
+
+1. **Cursor loses context on navigation.** The cursor always resets to the top when the listing changes. On startup, when `cwd` is a git repo and we auto-ascend to its parent, the cursor lands on row 0 instead of on the repo we came from. On back navigation (`..` / Left / Backspace from empty search), the cursor lands on row 0 of the parent instead of on the child directory we just left. Users lose spatial orientation.
+2. **Dot-directories are invisible.** The listing filters out any entry starting with `.`, so repos living under `.workit` (workit's own workspace root) and a small number of other useful hidden locations are unreachable through the picker. The only workaround today is `--projects`.
+
+## Requirements
+
+- R1. On initial render, when startup logic ascends from a git-repo `cwd` to its parent, the cursor is placed on the entry that represents the original `cwd` (the repo we came from).
+- R2. On back navigation to a parent (`..` entry, Left arrow, Backspace with empty search), the cursor is placed on the entry matching the basename of the directory we just left. If that entry is not present in the new listing (e.g. filtered out), the cursor falls back to row 0.
+- R3. Forward navigation (Right arrow, Enter into a subdirectory) continues to place the cursor at row 0 of the new listing — no per-directory memory beyond the immediate back-navigation case.
+- R4. Cursor memory is session-only. Nothing persists across picker invocations.
+- R5. Dot-directories are hidden by default. The visible set is driven by a user-configurable allowlist stored in the workit config file at `directoryPicker.dotAllowlist`. The shipped default is `[".workit"]`. Allowlisted dot-dirs use the same styling and selectability rules as non-dot directories (git repos selectable, non-git directories navigable-only).
+- R6. `.git` and `node_modules` are excluded at every level (`.git` is excluded implicitly because it is a dot-dir and — in a typical config — not on the allowlist; `node_modules` is excluded by the existing hard-coded `EXCLUDED` set). Users who deliberately add `.git` to their allowlist accept the consequence of seeing it in every repo.
+- R7. Allowlisted dot-directories participate in the existing fuzzy-filter search the same way any other entry does.
+
+## Success Criteria
+
+- Launching the picker from inside a repo at `~/a/b` shows `~/a` with the cursor already on `b`.
+- Pressing Left (or Backspace on empty search) inside `~/a/b` moves to `~/a` with the cursor on `b`.
+- A repo at `~/.workit/<workspace>/<project>` is discoverable by navigating into `~/.workit` from `~`.
+- `.git` never appears in the listing.
+- Generic hidden dirs like `.cache`, `.Trash`, `.DS_Store`-style names never appear — users see a clean listing.
+
+## Scope Boundaries
+
+- No per-directory cursor memory on forward navigation or re-entry — only the immediate "came-from" case (R1, R2).
+- No hidden/visible toggle hotkey for dot-dirs — behavior is driven by the config-file allowlist.
+- No CLI flag to override the allowlist per-invocation; editing the config file is the configuration surface.
+- No changes to selection, search, multi-select, or `--projects` behavior.
+
+## Key Decisions
+
+- **Back-only cursor memory.** Covers the stated user pain (startup ascent + back navigation) without introducing a per-path cursor map or extra state. Forward navigation resetting to top is acceptable and matches common file-browser behavior.
+- **Allowlist, not exclusion list.** Most dot-dirs under `~` (`.cache`, `.Trash`, `.npm`, `.ssh`, etc.) are noise or outright sensitive. Starting from "hidden by default, allow specific names" keeps the listing clean and avoids surfacing sensitive locations. `.workit` is the one dot-dir that meaningfully hosts repos in this tool's workflow and is therefore the default. `.git` exclusion falls out naturally from the same rule (dot-dir, not on the allowlist), which is why `EXCLUDED` only needs to carry `node_modules`.
+- **Configurable via config file, not hardcoded.** Different users have different tree layouts — someone may keep repos under `.dotfiles`, `.local/src`, etc. Making the allowlist a config value (`directoryPicker.dotAllowlist`) is cheap (one field) and avoids code changes for a preference. The zod schema provides a `.default()` so existing configs without the field continue to load.
+- **Match by basename, fall back on miss.** Simple, predictable rule. If the target entry vanished (filtered, permission changed), cursor falling to 0 is the obvious safe default.
+
+## Dependencies / Assumptions
+
+- Implementation spans `src/ui/directory-picker.ts`, `src/ui/prompts.ts`, `src/cli.ts` (config threading), and `src/core/config.ts` (schema + default). No changes to discovery or git layers.
+- The existing `findContainingRepo` + parent-ascent logic on startup is preserved; only the cursor placement changes.
+- Tests for the picker in `tests/` should be extended to cover cursor placement on startup and back navigation, allowlisted dot-dir visibility (`.workit`), non-allowlisted dot-dir hiding, and `.git` exclusion.
+
+## Outstanding Questions
+
+None.
+
+## Next Steps
+
+→ `/ce:plan` for structured implementation planning

@@ -43,7 +43,7 @@ program
           .map((s) => resolve(s.trim()))
           .filter(Boolean);
       } else {
-        const picked = await promptProjectPicker(process.cwd());
+        const picked = await promptProjectPicker(process.cwd(), config);
         projectPaths = picked.map((p) => p.path);
       }
 

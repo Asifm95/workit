@@ -40,6 +40,7 @@ describe("runRmCommand", () => {
       terminalCommand: {},
       templates: { workspaceClaudeMd: tpl },
       setupScriptPaths: ["./setup.sh"],
+      directoryPicker: { dotAllowlist: [".workit"] },
     };
   });
   afterEach(async () => {

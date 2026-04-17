@@ -25,6 +25,29 @@ describe("ConfigSchema", () => {
       ConfigSchema.parse({ ...DEFAULT_CONFIG, projectRoots: ["~/Projects"] })
     ).not.toThrow();
   });
+
+  test("fills directoryPicker.dotAllowlist default when missing", () => {
+    const { directoryPicker, ...withoutPicker } = DEFAULT_CONFIG;
+    void directoryPicker;
+    const parsed = ConfigSchema.parse(withoutPicker);
+    expect(parsed.directoryPicker.dotAllowlist).toEqual([".workit"]);
+  });
+
+  test("preserves a custom directoryPicker.dotAllowlist", () => {
+    const parsed = ConfigSchema.parse({
+      ...DEFAULT_CONFIG,
+      directoryPicker: { dotAllowlist: [".workit", ".dotfiles"] },
+    });
+    expect(parsed.directoryPicker.dotAllowlist).toEqual([".workit", ".dotfiles"]);
+  });
+
+  test("accepts an empty directoryPicker.dotAllowlist", () => {
+    const parsed = ConfigSchema.parse({
+      ...DEFAULT_CONFIG,
+      directoryPicker: { dotAllowlist: [] },
+    });
+    expect(parsed.directoryPicker.dotAllowlist).toEqual([]);
+  });
 });
 
 describe("loadConfig", () => {
