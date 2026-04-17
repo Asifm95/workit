@@ -6,6 +6,8 @@ import {
   listDir,
   findContainingRepo,
   abbreviatePath,
+  resolveCursor,
+  type DirEntry,
 } from "../../../src/ui/directory-picker";
 
 describe("listDir", () => {
@@ -22,7 +24,9 @@ describe("listDir", () => {
     await mkdir(join(root, "frontend", ".git")); // git repo
     await mkdir(join(root, "shared-libs")); // plain dir
     await mkdir(join(root, "node_modules")); // should be excluded
-    await mkdir(join(root, ".hidden")); // should be excluded (dotfile)
+    await mkdir(join(root, ".config")); // dot-dir should be visible
+    await mkdir(join(root, ".hidden")); // dot-dir should be visible
+    await mkdir(join(root, ".git")); // .git should be excluded even at listed level
   });
 
   afterEach(async () => {
@@ -32,7 +36,7 @@ describe("listDir", () => {
   test("lists directories with git repo detection", async () => {
     const entries = await listDir(root, cache);
     const names = entries.map((e) => e.name);
-    expect(names).toEqual(["api", "frontend", "shared-libs"]);
+    expect(names).toEqual([".config", ".hidden", "api", "frontend", "shared-libs"]);
     expect(entries.find((e) => e.name === "api")!.isGitRepo).toBe(true);
     expect(entries.find((e) => e.name === "frontend")!.isGitRepo).toBe(true);
     expect(entries.find((e) => e.name === "shared-libs")!.isGitRepo).toBe(false);
@@ -43,9 +47,15 @@ describe("listDir", () => {
     expect(entries.find((e) => e.name === "node_modules")).toBeUndefined();
   });
 
-  test("excludes dotfile directories", async () => {
+  test("includes dot-directories", async () => {
     const entries = await listDir(root, cache);
-    expect(entries.find((e) => e.name === ".hidden")).toBeUndefined();
+    expect(entries.find((e) => e.name === ".hidden")).toBeDefined();
+    expect(entries.find((e) => e.name === ".config")).toBeDefined();
+  });
+
+  test("excludes .git", async () => {
+    const entries = await listDir(root, cache);
+    expect(entries.find((e) => e.name === ".git")).toBeUndefined();
   });
 
   test("returns sorted entries", async () => {
@@ -113,5 +123,29 @@ describe("abbreviatePath", () => {
 
   test("does not abbreviate paths outside home", () => {
     expect(abbreviatePath("/var/log", home)).toBe("/var/log");
+  });
+});
+
+describe("resolveCursor", () => {
+  const entries: DirEntry[] = [
+    { name: "api", path: "/x/api", isGitRepo: true },
+    { name: "frontend", path: "/x/frontend", isGitRepo: true },
+    { name: "shared-libs", path: "/x/shared-libs", isGitRepo: false },
+  ];
+
+  test("returns index of matching name", () => {
+    expect(resolveCursor(entries, "frontend")).toBe(1);
+  });
+
+  test("falls back to 0 when name is missing", () => {
+    expect(resolveCursor(entries, "ghost")).toBe(0);
+  });
+
+  test("returns 0 for null came-from", () => {
+    expect(resolveCursor(entries, null)).toBe(0);
+  });
+
+  test("returns 0 for empty list", () => {
+    expect(resolveCursor([], "anything")).toBe(0);
   });
 });

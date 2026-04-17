@@ -12,21 +12,23 @@ export interface DirEntry {
   isGitRepo: boolean;
 }
 
-const EXCLUDED = new Set(['node_modules']);
+const EXCLUDED = new Set(['node_modules', '.git']);
 
 const S_BAR = '│';
 const S_BAR_END = '└';
 const S_STEP_ACTIVE = '◆';
 const S_STEP_SUBMIT = '◇';
 
-function isDotfile(name: string): boolean {
-  return name.startsWith('.');
-}
-
 export function abbreviatePath(p: string, home: string): string {
   if (p === home) return '~';
   if (p.startsWith(home + '/')) return '~' + p.slice(home.length);
   return p;
+}
+
+export function resolveCursor(entries: DirEntry[], cameFromName: string | null): number {
+  if (!cameFromName) return 0;
+  const idx = entries.findIndex((e) => e.name === cameFromName);
+  return idx >= 0 ? idx : 0;
 }
 
 async function checkGit(path: string, cache: Map<string, boolean>): Promise<boolean> {
@@ -41,7 +43,7 @@ export async function listDir(dir: string, cache: Map<string, boolean>): Promise
   try {
     const raw = await readdir(dir, { withFileTypes: true });
     const dirs = raw
-      .filter((e) => e.isDirectory() && !EXCLUDED.has(e.name) && !isDotfile(e.name))
+      .filter((e) => e.isDirectory() && !EXCLUDED.has(e.name))
       .sort((a, b) => a.name.localeCompare(b.name));
 
     const entries: DirEntry[] = [];
@@ -85,16 +87,21 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
   let prevLineCount = 0;
   let busy = false;
 
+  let cameFromBasename: string | null = null;
   const containingRepo = await findContainingRepo(cwd, gitCache);
   if (containingRepo) {
     selected.add(containingRepo);
     // Start one level up so the repo itself is visible and selected in the list
     const parent = dirname(containingRepo);
-    if (parent !== containingRepo) cwd = parent;
+    if (parent !== containingRepo) {
+      cameFromBasename = basename(containingRepo);
+      cwd = parent;
+    }
   }
 
   entries = await listDir(cwd, gitCache);
   filtered = entries;
+  cursor = resolveCursor(filtered, cameFromBasename);
 
   return new Promise<Project[]>((resolvePromise) => {
     const { stdin, stdout } = process;
@@ -195,11 +202,12 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
     async function navigateToParent() {
       const parent = dirname(cwd);
       if (parent === cwd) return;
+      const cameFrom = basename(cwd);
       cwd = parent;
       search = '';
       entries = await listDir(cwd, gitCache);
       filtered = entries;
-      cursor = 0;
+      cursor = resolveCursor(filtered, cameFrom);
     }
 
     function renderSubmit() {
