@@ -13,6 +13,7 @@ import {
 describe("listDir", () => {
   let root: string;
   let cache: Map<string, boolean>;
+  const defaultAllowlist = new Set([".workit"]);
 
   beforeEach(async () => {
     root = await mkdtemp(join(tmpdir(), "workit-picker-"));
@@ -35,7 +36,7 @@ describe("listDir", () => {
   });
 
   test("lists directories with git repo detection", async () => {
-    const entries = await listDir(root, cache);
+    const entries = await listDir(root, cache, defaultAllowlist);
     const names = entries.map((e) => e.name);
     expect(names).toEqual([".workit", "api", "frontend", "shared-libs"]);
     expect(entries.find((e) => e.name === "api")!.isGitRepo).toBe(true);
@@ -44,42 +45,57 @@ describe("listDir", () => {
   });
 
   test("excludes node_modules", async () => {
-    const entries = await listDir(root, cache);
+    const entries = await listDir(root, cache, defaultAllowlist);
     expect(entries.find((e) => e.name === "node_modules")).toBeUndefined();
   });
 
   test("includes allowlisted dot-directories (.workit)", async () => {
-    const entries = await listDir(root, cache);
+    const entries = await listDir(root, cache, defaultAllowlist);
     expect(entries.find((e) => e.name === ".workit")).toBeDefined();
   });
 
   test("hides non-allowlisted dot-directories", async () => {
-    const entries = await listDir(root, cache);
+    const entries = await listDir(root, cache, defaultAllowlist);
     expect(entries.find((e) => e.name === ".config")).toBeUndefined();
     expect(entries.find((e) => e.name === ".hidden")).toBeUndefined();
   });
 
   test("hides .git", async () => {
-    const entries = await listDir(root, cache);
+    const entries = await listDir(root, cache, defaultAllowlist);
     expect(entries.find((e) => e.name === ".git")).toBeUndefined();
   });
 
   test("returns sorted entries", async () => {
-    const entries = await listDir(root, cache);
+    const entries = await listDir(root, cache, defaultAllowlist);
     const names = entries.map((e) => e.name);
     expect(names).toEqual([...names].sort());
   });
 
   test("returns empty for non-existent directory", async () => {
-    const entries = await listDir(join(root, "does-not-exist"), cache);
+    const entries = await listDir(join(root, "does-not-exist"), cache, defaultAllowlist);
     expect(entries).toEqual([]);
   });
 
   test("caches .git check results", async () => {
-    await listDir(root, cache);
+    await listDir(root, cache, defaultAllowlist);
     expect(cache.size).toBeGreaterThan(0);
     expect(cache.get(join(root, "api"))).toBe(true);
     expect(cache.get(join(root, "shared-libs"))).toBe(false);
+  });
+
+  test("honors a custom allowlist (.config, not .workit)", async () => {
+    const entries = await listDir(root, cache, new Set([".config"]));
+    const names = entries.map((e) => e.name);
+    expect(names).toContain(".config");
+    expect(names).not.toContain(".workit");
+    expect(names).not.toContain(".hidden");
+    expect(names).not.toContain(".git");
+  });
+
+  test("hides all dot-dirs when allowlist is empty", async () => {
+    const entries = await listDir(root, cache, new Set());
+    const names = entries.map((e) => e.name);
+    expect(names).toEqual(["api", "frontend", "shared-libs"]);
   });
 });
 

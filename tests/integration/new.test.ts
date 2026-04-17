@@ -47,6 +47,7 @@ describe("runNewCommand", () => {
       terminalCommand: {},
       templates: { workspaceClaudeMd: templatePath },
       setupScriptPaths: ["./setup.sh", ".workit/setup.sh"],
+      directoryPicker: { dotAllowlist: [".workit"] },
     };
   });
   afterEach(async () => {

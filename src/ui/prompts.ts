@@ -1,4 +1,5 @@
 import * as p from '@clack/prompts';
+import type { Config } from '../core/config';
 import type { Project } from '../core/project-discovery';
 import type { BackendName } from '../terminal';
 import { directoryPicker } from './directory-picker';
@@ -42,8 +43,11 @@ export async function promptBranchType(
   return result as string;
 }
 
-export async function promptProjectPicker(cwd: string): Promise<Project[]> {
-  return directoryPicker({ cwd });
+export async function promptProjectPicker(cwd: string, config: Config): Promise<Project[]> {
+  return directoryPicker({
+    cwd,
+    dotAllowlist: new Set(config.directoryPicker.dotAllowlist),
+  });
 }
 
 export interface ShellAvailability {

@@ -13,7 +13,6 @@ export interface DirEntry {
 }
 
 const EXCLUDED = new Set(['node_modules']);
-const DOT_ALLOWLIST = new Set(['.workit']);
 
 function isDotfile(name: string): boolean {
   return name.startsWith('.');
@@ -44,7 +43,11 @@ async function checkGit(path: string, cache: Map<string, boolean>): Promise<bool
   return result;
 }
 
-export async function listDir(dir: string, cache: Map<string, boolean>): Promise<DirEntry[]> {
+export async function listDir(
+  dir: string,
+  cache: Map<string, boolean>,
+  dotAllowlist: Set<string>,
+): Promise<DirEntry[]> {
   try {
     const raw = await readdir(dir, { withFileTypes: true });
     const dirs = raw
@@ -52,7 +55,7 @@ export async function listDir(dir: string, cache: Map<string, boolean>): Promise
         (e) =>
           e.isDirectory() &&
           !EXCLUDED.has(e.name) &&
-          (!isDotfile(e.name) || DOT_ALLOWLIST.has(e.name)),
+          (!isDotfile(e.name) || dotAllowlist.has(e.name)),
       )
       .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -85,10 +88,14 @@ export async function findContainingRepo(
   return null;
 }
 
-export async function directoryPicker(opts: { cwd: string }): Promise<Project[]> {
+export async function directoryPicker(opts: {
+  cwd: string;
+  dotAllowlist: Set<string>;
+}): Promise<Project[]> {
   const home = homedir();
   const gitCache = new Map<string, boolean>();
   const selected = new Set<string>();
+  const dotAllowlist = opts.dotAllowlist;
   let cwd = resolve(opts.cwd);
   let entries: DirEntry[] = [];
   let filtered: DirEntry[] = [];
@@ -109,7 +116,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
     }
   }
 
-  entries = await listDir(cwd, gitCache);
+  entries = await listDir(cwd, gitCache, dotAllowlist);
   filtered = entries;
   cursor = resolveCursor(filtered, cameFromBasename);
 
@@ -204,7 +211,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
     async function navigateInto(path: string) {
       cwd = path;
       search = '';
-      entries = await listDir(cwd, gitCache);
+      entries = await listDir(cwd, gitCache, dotAllowlist);
       filtered = entries;
       cursor = 0;
     }
@@ -215,7 +222,7 @@ export async function directoryPicker(opts: { cwd: string }): Promise<Project[]>
       const cameFrom = basename(cwd);
       cwd = parent;
       search = '';
-      entries = await listDir(cwd, gitCache);
+      entries = await listDir(cwd, gitCache, dotAllowlist);
       filtered = entries;
       cursor = resolveCursor(filtered, cameFrom);
     }

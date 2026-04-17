@@ -17,6 +17,7 @@ describe("listEntries", () => {
       terminalCommand: {},
       templates: { workspaceClaudeMd: "/x" },
       setupScriptPaths: ["./setup.sh"],
+      directoryPicker: { dotAllowlist: [".workit"] },
     };
   });
   afterEach(async () => {
