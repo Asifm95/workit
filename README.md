@@ -21,7 +21,7 @@ Requires [Bun](https://bun.sh) ≥ 1.1.
 ### Homebrew (macos)
 
 ```bash
-brew tap Asifm95/workit && brew install workit`
+brew tap Asifm95/workit && brew install workit
 ```
 
 ### Prebuilt binary
@@ -38,9 +38,18 @@ bun run dev -- new
 ## Usage
 
 ```bash
-workit new "Add DAC7 reporting"
-workit new "Fix header bug" --type fix --projects storelink-dashboard
+# Create a new feature
+workit new "Add an awesome feature"
+
+# Create a new feature for a specific project
+workit new "Fix that annoying bug" --type fix --projects my-project
+
+# List all worktrees
 workit ls
-workit rm add-dac7-reporting --delete-branch
+
+# Remove a worktree
+workit rm my-feature --delete-branch
+
+# Print the config
 workit config
 ```
