@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build binaries
+        run: bun run build:binaries
+
+      - name: Compute SHA256
+        id: sha
+        run: |
+          cd dist
+          echo "darwin_arm64=$(sha256sum workit-darwin-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "darwin_x64=$(sha256sum workit-darwin-x64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "linux_x64=$(sha256sum workit-linux-x64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "linux_arm64=$(sha256sum workit-linux-arm64 | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "windows_x64=$(sha256sum workit-windows-x64.exe | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Get version
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" \
+            dist/workit-darwin-arm64 \
+            dist/workit-darwin-x64 \
+            dist/workit-linux-x64 \
+            dist/workit-linux-arm64 \
+            dist/workit-windows-x64.exe \
+            --title "$TAG" \
+            --generate-notes
+
+      - name: Update Homebrew tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA_DARWIN_ARM64: ${{ steps.sha.outputs.darwin_arm64 }}
+          SHA_DARWIN_X64: ${{ steps.sha.outputs.darwin_x64 }}
+        run: |
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/Asifm95/homebrew-workit.git" tap
+          cd tap
+
+          cat > Formula/workit.rb <<EOF
+          class Workit < Formula
+            desc "CLI workflow manager for multi-project git worktrees"
+            homepage "https://github.com/Asifm95/workit"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/Asifm95/workit/releases/download/v${VERSION}/workit-darwin-arm64"
+                sha256 "${SHA_DARWIN_ARM64}"
+              end
+              on_intel do
+                url "https://github.com/Asifm95/workit/releases/download/v${VERSION}/workit-darwin-x64"
+                sha256 "${SHA_DARWIN_X64}"
+              end
+            end
+
+            def install
+              binary_name = Hardware::CPU.arm? ? "workit-darwin-arm64" : "workit-darwin-x64"
+              bin.install binary_name => "workit"
+            end
+
+            test do
+              assert_match "workit", shell_output("#{bin}/workit --help")
+            end
+          end
+          EOF
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/workit.rb
+          git commit -m "chore: bump workit to ${VERSION}"
+          git push
