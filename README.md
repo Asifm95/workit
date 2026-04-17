@@ -12,20 +12,21 @@ Most coding-agent CLIs and GUIs (Conductor, Superset, t3code, …) are built aro
 
 ### Bun (recommended)
 
-````bash
+```bash
 bun install -g workit
-
+```
 
 Requires [Bun](https://bun.sh) ≥ 1.1.
 
-### Prebuilt binary (no Bun required)
-
-Download the binary matching your platform from the [latest release](https://github.com/Asifm95/workit/releases/latest):
-
 ### Homebrew (macos)
+
 ```bash
 brew tap Asifm95/workit && brew install workit`
-````
+```
+
+### Prebuilt binary
+
+Download the binary matching your platform from the [latest release](https://github.com/Asifm95/workit/releases/latest):
 
 ### From source (Bun)
 
