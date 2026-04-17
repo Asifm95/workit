@@ -1,4 +1,4 @@
-import { execa, execaSync } from 'execa';
+import { execa } from 'execa';
 import type { TabSpec } from './none';
 
 export function sanitizeSessionName(name: string): string {
@@ -55,15 +55,10 @@ export async function runTmuxBackend(args: RunTmuxArgs): Promise<void> {
     }
   }
 
+  console.log(`tmux session ready: ${sessionName}`);
   if (insideTmux()) {
-    await execa('tmux', ['switch-client', '-t', sessionName], { reject: true });
-    return;
-  }
-
-  if (process.stdin.isTTY) {
-    execaSync('tmux', ['attach-session', '-t', sessionName], { stdio: 'inherit' });
+    console.log(`Switch with: tmux switch-client -t ${sessionName}`);
   } else {
-    console.log(`tmux session ready: ${sessionName}`);
     console.log(`Attach with: tmux attach -t ${sessionName}`);
   }
 }
