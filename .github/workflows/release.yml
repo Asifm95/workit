@@ -26,10 +26,11 @@ jobs:
 
       - name: Ad-hoc sign macOS binaries
         run: |
-          codesign --sign - --force --timestamp=none dist/workit-darwin-arm64
-          codesign --sign - --force --timestamp=none dist/workit-darwin-x64
-          codesign -dv dist/workit-darwin-arm64
-          codesign -dv dist/workit-darwin-x64
+          for f in dist/workit-darwin-arm64 dist/workit-darwin-x64; do
+            codesign --remove-signature "$f" || true
+            codesign --sign - --force --deep --timestamp=none "$f"
+            codesign -dv "$f"
+          done
 
       - name: Compute SHA256
         id: sha
