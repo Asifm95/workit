@@ -1,7 +1,7 @@
 ---
 title: feat: Directory picker cursor memory and dot-dir support
 type: feat
-status: active
+status: completed
 date: 2026-04-17
 origin: docs/brainstorms/2026-04-17-directory-picker-improvements-requirements.md
 ---
