@@ -24,6 +24,13 @@ jobs:
       - name: Build binaries
         run: bun run build:binaries
 
+      - name: Ad-hoc sign macOS binaries
+        run: |
+          codesign --sign - --force --timestamp=none dist/workit-darwin-arm64
+          codesign --sign - --force --timestamp=none dist/workit-darwin-x64
+          codesign -dv dist/workit-darwin-arm64
+          codesign -dv dist/workit-darwin-x64
+
       - name: Compute SHA256
         id: sha
         run: |
