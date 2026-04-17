@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { Command } from 'commander';
 import { resolve } from 'node:path';
+import pkg from '../package.json' with { type: 'json' };
 import { runConfigCommand } from './commands/config';
 import { runLsCommand } from './commands/ls';
 import { runNewCommand } from './commands/new';
@@ -17,7 +18,7 @@ import {
 } from './ui/prompts';
 
 const program = new Command();
-program.name('workit').description('Multi-project git worktree workflow manager').version('0.1.0');
+program.name('workit').description('Multi-project git worktree workflow manager').version(pkg.version);
 
 program
   .command('new')
