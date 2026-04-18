@@ -53,3 +53,7 @@ workit rm my-feature --delete-branch
 # Print the config
 workit config
 ```
+
+## Releasing
+
+Releases are automated via [release-please](https://github.com/googleapis/release-please). Use [Conventional Commits](https://www.conventionalcommits.org) on `main` (`feat:` → minor bump while on 0.x, `fix:` → patch bump) and release-please opens a "chore(main): release X.Y.Z" PR that maintains `CHANGELOG.md` and `package.json`. Merging that PR cuts the tag, publishes to npm with provenance, attaches cross-platform binaries to the GitHub Release, and bumps the Homebrew tap. No manual tagging.
