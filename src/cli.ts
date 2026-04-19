@@ -131,11 +131,11 @@ program
 program
   .command('logs <slug> [project]')
   .description('View and follow setup-script logs (Ctrl-C to exit)')
-  .option('-n, --lines <n>', 'history lines to backfill per project', '50')
+  .option('-n, --lines <n>', 'history lines to backfill per project')
   .action(async (slug: string, project: string | undefined, opts) => {
     try {
       const { config } = await loadConfig();
-      const lines = Number.parseInt(opts.lines) ?? config.logsLines;
+      const lines = opts.lines ? Number.parseInt(opts.lines) : config.logsLines;
       if (!Number.isFinite(lines) || lines < 0) {
         throw new Error(`invalid --lines: ${opts.lines}`);
       }
