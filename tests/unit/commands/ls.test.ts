@@ -18,6 +18,7 @@ describe("listEntries", () => {
       templates: { workspaceClaudeMd: "/x" },
       setupScriptPaths: ["./setup.sh"],
       directoryPicker: { dotAllowlist: [".workit"] },
+      logsLines: 50,
     };
   });
   afterEach(async () => {

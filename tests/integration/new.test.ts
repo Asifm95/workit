@@ -59,6 +59,7 @@ describe("runNewCommand", () => {
       templates: { workspaceClaudeMd: templatePath },
       setupScriptPaths: ["./setup.sh", ".workit/setup.sh"],
       directoryPicker: { dotAllowlist: [".workit"] },
+      logsLines: 50,
     };
   });
   afterEach(async () => {
