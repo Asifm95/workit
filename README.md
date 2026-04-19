@@ -208,24 +208,4 @@ Complete example `config.json` at defaults:
 
 ## Setup scripts
 
-When workit creates a worktree, it looks for a setup script in that worktree and runs it. This is where you put the per-project bootstrapping that would otherwise be a manual step every time — `bun install`, `bundle install`, copying `.env`, generating local SSL certs, whatever your project needs to be runnable.
-
-**Discovery.** workit walks `setupScriptPaths` in order, strips a leading `./`, and runs the first script that exists. The default order is `./setup.sh` then `.workit/setup.sh`. If none exist, workit reports it and moves on — setup scripts are optional.
-
-**Working directory.** The script runs with the new worktree as its `cwd`, not the main repo. Reach for `pwd` if you need to know where you are.
-
-**Async by default.** Each project's setup runs detached so `workit new` can return as soon as the worktrees and terminal tabs are ready. Pass `--sync-setup` to wait inline and stream output instead.
-
-**Logs.** In async mode, output goes to `~/.workit/logs/<slug>/<project>.log` and the script's exit code is written to `~/.workit/logs/<slug>/<project>.status` when it finishes. Tail them with `workit logs <slug>` (see above), or just `tail -f` the file directly. In sync mode, output streams straight to your terminal — no log file is written.
-
-**Status reporting.** When `workit new` finishes, you'll see one of these per project:
-
-| Status            | Meaning                                                                        |
-| ----------------- | ------------------------------------------------------------------------------ |
-| `spawned`         | Async script started successfully. Watch progress via `workit logs`.           |
-| `missing`         | No script found at any path in `setupScriptPaths` for this project.            |
-| `failed-to-start` | Async spawn raised before handoff. Usually a permissions or interpreter issue. |
-| `ok`              | Sync script exited 0.                                                          |
-| `failed`          | Sync script exited non-zero.                                                   |
-
-**Environment.** Setup scripts inherit the parent `workit` process's environment unmodified. workit does **not** inject any variables today — no slug, branch, project name, or target path. If your script needs to know the worktree path, it can read `pwd`. This may change in a future version; if you'd like it to, open an issue.
+When workit creates a worktree, it looks for a setup script in that worktree and runs it. This is where you put the per-project bootstrapping that would otherwise be a manual step every time — `bun install`, `bundle install`, copying `.env`, generating local SSL certs, whatever your project needs to be runnable. By default, it looks for `./setup.sh` then `.workit/setup.sh`. This can be configured in `setupScriptPaths`
