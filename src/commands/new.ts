@@ -2,6 +2,7 @@ import { basename, join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
 import { buildNewPlan, formatNewPlan } from '../core/plan';
+import { folderName, workspaceFolderName } from '../core/naming';
 import type { Project } from '../core/project-discovery';
 import { slugify } from '../core/slug';
 import { branchExists, isGitRepo } from '../git/repo';
@@ -141,10 +142,14 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     }
   }
 
+  const workspaceName = plan.isWorkspace
+    ? workspaceFolderName(slug)
+    : folderName(plan.targets[0]!.project.name, slug);
+
   await dispatchBackend({
     backend,
     config: args.config,
-    featureSlug: slug,
+    workspaceName,
     workspacePath: plan.workspacePath,
     tabs: plan.targets.map((t) => ({ name: t.project.name, cwd: t.targetPath })),
   });

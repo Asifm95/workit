@@ -41,12 +41,12 @@ async function sessionExists(name: string): Promise<boolean> {
 }
 
 export interface RunTmuxArgs {
-  featureSlug: string;
+  workspaceName: string;
   tabs: TabSpec[];
 }
 
 export async function runTmuxBackend(args: RunTmuxArgs): Promise<void> {
-  const sessionName = sanitizeSessionName(args.featureSlug);
+  const sessionName = sanitizeSessionName(args.workspaceName);
 
   if (!(await sessionExists(sessionName))) {
     const commands = buildTmuxCommands({ sessionName, tabs: args.tabs });

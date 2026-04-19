@@ -37,27 +37,27 @@ export function selectBackend(args: SelectBackendArgs): BackendName {
 export interface DispatchArgs {
   backend: BackendName;
   config: Config;
-  featureSlug: string;
+  workspaceName: string;
   workspacePath: string | null;
   tabs: TabSpec[];
 }
 
 export async function dispatchBackend(args: DispatchArgs): Promise<void> {
-  const { backend, config, featureSlug, workspacePath, tabs } = args;
+  const { backend, config, workspaceName, workspacePath, tabs } = args;
   switch (backend) {
     case 'none':
       runNoneBackend({ workspacePath, tabs });
       return;
     case 'tmux':
-      await runTmuxBackend({ featureSlug, tabs });
+      await runTmuxBackend({ workspaceName, tabs });
       return;
     case 'cmux': {
       const binary = config.terminalCommand.cmux ?? 'cmux';
-      await runCmuxBackend({ binary, featureSlug, tabs });
+      await runCmuxBackend({ binary, workspaceName, tabs });
       return;
     }
     case 'warp':
-      await runWarpBackend({ featureSlug, tabs });
+      await runWarpBackend({ workspaceName, tabs });
       return;
   }
 }

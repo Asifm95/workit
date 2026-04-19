@@ -55,7 +55,7 @@ export function insideCmux(): boolean {
 
 export interface RunCmuxArgs {
   binary: string;
-  featureSlug: string;
+  workspaceName: string;
   tabs: TabSpec[];
 }
 
@@ -68,13 +68,13 @@ export function parseRef(stdout: string, kind: 'workspace' | 'surface' | 'pane')
 }
 
 export async function runCmuxBackend(args: RunCmuxArgs): Promise<void> {
-  const { binary, featureSlug, tabs } = args;
+  const { binary, workspaceName, tabs } = args;
   const [first, ...rest] = tabs;
   if (!first) return;
 
   const createRes = await execa(
     binary,
-    ['new-workspace', '--name', featureSlug, '--cwd', first.cwd],
+    ['new-workspace', '--name', workspaceName, '--cwd', first.cwd],
     { reject: true },
   );
   const workspace = parseRef(String(createRes.stdout ?? ''), 'workspace');

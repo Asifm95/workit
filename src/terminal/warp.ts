@@ -65,12 +65,12 @@ function yamlString(v: string): string {
 }
 
 export interface RunWarpArgs {
-  featureSlug: string;
+  workspaceName: string;
   tabs: TabSpec[];
 }
 
 export async function runWarpBackend(args: RunWarpArgs): Promise<void> {
-  const { featureSlug, tabs } = args;
+  const { workspaceName, tabs } = args;
   if (tabs.length === 0) return;
 
   if (!(await warpInstalled())) {
@@ -80,13 +80,13 @@ export async function runWarpBackend(args: RunWarpArgs): Promise<void> {
   }
 
   const dir = launchConfigurationsDir(process.platform, process.env);
-  const filePath = join(dir, `${featureSlug}.yaml`);
-  const yaml = buildWarpLaunchConfig({ configName: featureSlug, tabs });
+  const filePath = join(dir, `${workspaceName}.yaml`);
+  const yaml = buildWarpLaunchConfig({ configName: workspaceName, tabs });
 
   await mkdir(dir, { recursive: true });
   await Bun.write(filePath, yaml);
 
-  const url = `warp://launch/${featureSlug}`;
+  const url = `warp://launch/${workspaceName}`;
   const invocation = deepLinkCommand(process.platform, url);
   if (!invocation) {
     warn(`Warp deep-link not supported on ${process.platform}; open manually: ${filePath}`);
