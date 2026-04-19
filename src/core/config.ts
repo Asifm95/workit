@@ -1,5 +1,5 @@
-import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { join } from 'node:path';
 import { z } from 'zod';
 import { expandUser, pathExists, readJsonFile, writeJsonFile } from '../utils/fs';
 
@@ -21,6 +21,7 @@ export const ConfigSchema = z
         dotAllowlist: z.array(z.string().min(1)).default(['.workit']),
       })
       .default({ dotAllowlist: ['.workit'] }),
+    logsLines: z.number().min(0).default(50),
   })
   .passthrough();
 
@@ -40,6 +41,7 @@ export const DEFAULT_CONFIG: Config = {
   directoryPicker: {
     dotAllowlist: ['.workit'],
   },
+  logsLines: 50,
 };
 
 export function defaultConfigPath(): string {

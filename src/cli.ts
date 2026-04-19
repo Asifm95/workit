@@ -3,6 +3,7 @@ import { Command } from 'commander';
 import { resolve } from 'node:path';
 import pkg from '../package.json' with { type: 'json' };
 import { runConfigCommand } from './commands/config';
+import { runLogsCommand } from './commands/logs';
 import { runLsCommand } from './commands/ls';
 import { runNewCommand } from './commands/new';
 import { runRmCommand } from './commands/rm';
@@ -18,7 +19,10 @@ import {
 } from './ui/prompts';
 
 const program = new Command();
-program.name('workit').description('Multi-project git worktree workflow manager').version(pkg.version);
+program
+  .name('workit')
+  .description('Multi-project git worktree workflow manager')
+  .version(pkg.version);
 
 program
   .command('new')
@@ -122,6 +126,25 @@ program
   .description('Print config (creates default if missing)')
   .action(async () => {
     await runConfigCommand();
+  });
+
+program
+  .command('logs <slug> [project]')
+  .description('View and follow setup-script logs (Ctrl-C to exit)')
+  .option('-n, --lines <n>', 'history lines to backfill per project', '50')
+  .action(async (slug: string, project: string | undefined, opts) => {
+    try {
+      const { config } = await loadConfig();
+      const lines = Number.parseInt(opts.lines) ?? config.logsLines;
+      if (!Number.isFinite(lines) || lines < 0) {
+        throw new Error(`invalid --lines: ${opts.lines}`);
+      }
+      const { exitCode } = await runLogsCommand({ slug, project, lines });
+      if (exitCode !== 0) process.exit(exitCode);
+    } catch (e: any) {
+      error(e.message ?? String(e));
+      process.exit(1);
+    }
   });
 
 program.parseAsync(process.argv);
