@@ -59,8 +59,12 @@ export interface RunCmuxArgs {
   tabs: TabSpec[];
 }
 
-function parseRef(stdout: string): string {
-  return stdout.trim().split(/\s+/)[0] ?? stdout.trim();
+export function parseRef(stdout: string, kind: 'workspace' | 'surface' | 'pane'): string | undefined {
+  const prefix = `${kind}:`;
+  for (const token of stdout.trim().split(/\s+/)) {
+    if (token.startsWith(prefix)) return token;
+  }
+  return undefined;
 }
 
 export async function runCmuxBackend(args: RunCmuxArgs): Promise<void> {
@@ -73,15 +77,20 @@ export async function runCmuxBackend(args: RunCmuxArgs): Promise<void> {
     ['new-workspace', '--name', featureSlug, '--cwd', first.cwd],
     { reject: true },
   );
-  const workspace = parseRef(String(createRes.stdout ?? ''));
+  const workspace = parseRef(String(createRes.stdout ?? ''), 'workspace');
+  if (!workspace) {
+    throw new Error(`cmux new-workspace did not return a workspace ref: ${createRes.stdout}`);
+  }
 
   const firstSurfaceRes = await execa(
     binary,
-    ['list-surfaces', '--workspace', workspace],
+    ['list-pane-surfaces', '--workspace', workspace],
     { reject: false },
   );
   const firstSurface =
-    firstSurfaceRes.exitCode === 0 ? parseRef(String(firstSurfaceRes.stdout ?? '')) : 'surface:1';
+    firstSurfaceRes.exitCode === 0
+      ? parseRef(String(firstSurfaceRes.stdout ?? ''), 'surface') ?? 'surface:1'
+      : 'surface:1';
 
   await execa(
     binary,
@@ -95,7 +104,10 @@ export async function runCmuxBackend(args: RunCmuxArgs): Promise<void> {
       ['new-surface', '--type', 'terminal', '--workspace', workspace],
       { reject: true },
     );
-    const surface = parseRef(String(surfRes.stdout ?? ''));
+    const surface = parseRef(String(surfRes.stdout ?? ''), 'surface');
+    if (!surface) {
+      throw new Error(`cmux new-surface did not return a surface ref: ${surfRes.stdout}`);
+    }
     await execa(
       binary,
       ['send', '--workspace', workspace, '--surface', surface, `cd ${tab.cwd}\n`],

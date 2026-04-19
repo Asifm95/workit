@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { planCmuxCommands } from "../../../src/terminal/cmux";
+import { parseRef, planCmuxCommands } from "../../../src/terminal/cmux";
 
 describe("planCmuxCommands", () => {
   test("first tab becomes the workspace cwd, subsequent tabs are new surfaces with cd sends", () => {
@@ -37,5 +37,23 @@ describe("planCmuxCommands", () => {
     expect(plan.length).toBe(2);
     expect(plan[0]?.kind).toBe("new-workspace");
     expect(plan[1]?.kind).toBe("rename-first-tab");
+  });
+});
+
+describe("parseRef", () => {
+  test("extracts workspace ref from 'OK workspace:9' output", () => {
+    expect(parseRef("OK workspace:9\n", "workspace")).toBe("workspace:9");
+  });
+
+  test("extracts surface ref from multi-ref new-surface output", () => {
+    expect(parseRef("OK surface:28 pane:11 workspace:9\n", "surface")).toBe("surface:28");
+  });
+
+  test("extracts surface ref from list-pane-surfaces output with selected marker", () => {
+    expect(parseRef("* surface:30  debug3  [selected]\n", "surface")).toBe("surface:30");
+  });
+
+  test("returns undefined when no matching ref is present", () => {
+    expect(parseRef("OK\n", "workspace")).toBeUndefined();
   });
 });
