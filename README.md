@@ -1,12 +1,12 @@
 # workit
 
-Spin up cross-project git worktrees ready for coding agents — one command.
+A CLI for managing development across multi repo projects. Designed for running AI agents in parallel.
 
-## Why
+## Context
 
-Most coding-agent CLIs and GUIs (Conductor, Superset, t3code, …) are built around a single project per workspace. That breaks the moment a feature touches two or three repos — the agent can't see across them, and you're back to wiring worktrees, setup scripts, and terminal tabs by hand for every feature and every teardown.
+Most coding-agent TUIs and GUIs — Conductor, Superset, Codex app, t3code, etc — all support running parallel agents for a project using worktrees. This works well as long as the feature development is confined to a single repo. But since all these tools assumes one project per workspace, it doesn't work when a feature development spans across multiple repos. Things like planning, context sharing and working for the agents across multiple repos becomes difficult. Muti phased implementation of features across multiple repos becomes even more difficult.
 
-`workit` scaffolds a cross-project workspace in one command: a worktree per repo, per-project setup scripts executed, and a terminal session with tabs ready. Have native terminal integrations with `cmux`, `tmux` and `warp`.
+`workit` solves this by scaffolding a multi repo workspace per feature. Inside the workspace, it sets up the worktree per repo that needs to be worked on. `workit` ships with many helpful commands to help simplify working with many parallel repos.
 
 ## Install
 
@@ -53,7 +53,3 @@ workit rm my-feature --delete-branch
 # Print the config
 workit config
 ```
-
-## Releasing
-
-Releases are automated via [release-please](https://github.com/googleapis/release-please). Use [Conventional Commits](https://www.conventionalcommits.org) on `main` (`feat:` → minor bump while on 0.x, `fix:` → patch bump) and release-please opens a "chore(main): release X.Y.Z" PR that maintains `CHANGELOG.md` and `package.json`. Merging that PR cuts the tag, publishes to npm with provenance, attaches cross-platform binaries to the GitHub Release, and bumps the Homebrew tap. No manual tagging.
