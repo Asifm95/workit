@@ -1,4 +1,4 @@
-# {{feature_title}} — Workspace
+export const WORKSPACE_AGENTS_MD_DEFAULT = `# {{feature_title}} — Workspace
 
 This is the workspace folder for developing the **{{feature_title}}** feature.
 
@@ -9,9 +9,15 @@ The parent directory contains subdirectories, each of which is a separate git pr
 Current subprojects:
 
 {{#each projects}}
-- [`{{folder}}/`](./{{folder}}/CLAUDE.md) — see its `CLAUDE.md` for project-specific instructions.
+- [\`{{folder}}/\`](./{{folder}}/AGENTS.md) — see its \`AGENTS.md\` for project-specific instructions.
 {{/each}}
 
 ## Working in this workspace
 
-When working inside a subdirectory, follow the instructions in that subdirectory's own `CLAUDE.md`. Those files are authoritative for their respective projects.
+When working inside a subdirectory, follow the instructions in that subdirectory's own \`AGENTS.md\`. Those files are authoritative for their respective projects.
+`;
+
+export const WORKSPACE_CLAUDE_MD_ALIAS = `# Agent instructions
+
+@AGENTS.md
+`;

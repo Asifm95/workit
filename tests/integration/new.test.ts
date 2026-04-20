@@ -46,7 +46,7 @@ describe("runNewCommand", () => {
     await mkdir(projectsRoot);
     await setupTestRepo(projectsRoot, "alpha");
     await setupTestRepo(projectsRoot, "beta");
-    templatePath = join(root, "workspace-CLAUDE.md");
+    templatePath = join(root, "workspace-AGENTS.md");
     await Bun.write(
       templatePath,
       "# {{feature_title}}\n\n{{#each projects}}- {{folder}}\n{{/each}}"
@@ -56,7 +56,7 @@ describe("runNewCommand", () => {
       defaultBranchType: "feat",
       defaultTerminal: "none",
       terminalCommand: {},
-      templates: { workspaceClaudeMd: templatePath },
+      templates: { workspaceAgentsMd: templatePath },
       setupScriptPaths: ["./setup.sh", ".workit/setup.sh"],
       directoryPicker: { dotAllowlist: [".workit"] },
       logsLines: 50,
@@ -109,7 +109,7 @@ describe("runNewCommand", () => {
     expect(result.setupResults[0]!.exitCode).toBe(0);
   });
 
-  test("multi-project: creates workspace + CLAUDE.md + per-project worktrees", async () => {
+  test("multi-project: creates workspace + AGENTS.md + CLAUDE.md alias + worktrees", async () => {
     slugsToCleanup.add("big-change");
     const result = await runNewCommand({
       config,
@@ -123,12 +123,62 @@ describe("runNewCommand", () => {
     expect(result.ok).toBe(true);
     const ws = join(workspacesDir, "big-change");
     expect(await pathExists(ws)).toBe(true);
+    const agentsMd = await Bun.file(join(ws, "AGENTS.md")).text();
+    expect(agentsMd).toContain("Big Change");
+    expect(agentsMd).toContain("alpha.big-change");
+    expect(agentsMd).toContain("beta.big-change");
     const claudeMd = await Bun.file(join(ws, "CLAUDE.md")).text();
-    expect(claudeMd).toContain("Big Change");
-    expect(claudeMd).toContain("alpha.big-change");
-    expect(claudeMd).toContain("beta.big-change");
+    expect(claudeMd).toContain("@AGENTS.md");
     expect(await pathExists(join(ws, "alpha.big-change"))).toBe(true);
     expect(await pathExists(join(ws, "beta.big-change"))).toBe(true);
+  });
+
+  test("multi-project: installs the default template when user path is missing", async () => {
+    slugsToCleanup.add("fresh-start");
+    const missingTplPath = join(root, "fresh", "workspace-AGENTS.md");
+    config.templates = { workspaceAgentsMd: missingTplPath };
+    expect(await pathExists(missingTplPath)).toBe(false);
+
+    const result = await runNewCommand({
+      config,
+      description: "Fresh Start",
+      branchType: "feat",
+      projectPaths: [join(projectsRoot, "alpha"), join(projectsRoot, "beta")],
+      terminal: "none",
+      assumeYes: true,
+      syncSetup: true,
+    });
+    expect(result.ok).toBe(true);
+
+    expect(await pathExists(missingTplPath)).toBe(true);
+    const installed = await Bun.file(missingTplPath).text();
+    expect(installed).toContain("{{feature_title}}");
+    expect(installed).toContain("AGENTS.md");
+
+    const ws = join(workspacesDir, "fresh-start");
+    const agentsMd = await Bun.file(join(ws, "AGENTS.md")).text();
+    expect(agentsMd).toContain("Fresh Start");
+    expect(agentsMd).toContain("alpha.fresh-start");
+    const claudeMd = await Bun.file(join(ws, "CLAUDE.md")).text();
+    expect(claudeMd).toContain("@AGENTS.md");
+  });
+
+  test("dry-run: does not install the template or write workspace files", async () => {
+    const missingTplPath = join(root, "dry", "workspace-AGENTS.md");
+    config.templates = { workspaceAgentsMd: missingTplPath };
+
+    const result = await runNewCommand({
+      config,
+      description: "Dry Run",
+      branchType: "feat",
+      projectPaths: [join(projectsRoot, "alpha"), join(projectsRoot, "beta")],
+      terminal: "none",
+      assumeYes: true,
+      dryRun: true,
+    });
+    expect(result.ok).toBe(true);
+    expect(await pathExists(missingTplPath)).toBe(false);
+    expect(await pathExists(join(workspacesDir, "dry-run"))).toBe(false);
   });
 
   test("aborts when target folder already exists", async () => {

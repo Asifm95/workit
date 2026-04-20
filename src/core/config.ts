@@ -13,7 +13,7 @@ export const ConfigSchema = z
       warp: z.string().optional(),
     }),
     templates: z.object({
-      workspaceClaudeMd: z.string().min(1),
+      workspaceAgentsMd: z.string().min(1),
     }),
     setupScriptPaths: z.array(z.string().min(1)).min(1),
     directoryPicker: z
@@ -35,7 +35,7 @@ export const DEFAULT_CONFIG: Config = {
     cmux: '/Applications/cmux.app/Contents/Resources/bin/cmux',
   },
   templates: {
-    workspaceClaudeMd: '~/.config/workit/templates/workspace-CLAUDE.md',
+    workspaceAgentsMd: '~/.config/workit/templates/workspace-AGENTS.md',
   },
   setupScriptPaths: ['./setup.sh', '.workit/setup.sh'],
   directoryPicker: {
@@ -61,6 +61,17 @@ export async function loadConfig(
   } catch (err) {
     throw new Error(`Invalid config at ${path}: ${(err as Error).message}`);
   }
+  const legacy =
+    raw && typeof raw === 'object' && 'templates' in raw
+      ? (raw as { templates?: unknown }).templates
+      : undefined;
+  if (legacy && typeof legacy === 'object' && 'workspaceClaudeMd' in legacy) {
+    throw new Error(
+      `Invalid config at ${path}: templates.workspaceClaudeMd has been renamed to templates.workspaceAgentsMd ` +
+        `(default "~/.config/workit/templates/workspace-AGENTS.md"). Rename the key and, if you customized the ` +
+        `template, move its contents to the new path.`,
+    );
+  }
   const parsed = ConfigSchema.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.issues
@@ -73,11 +84,11 @@ export async function loadConfig(
 
 export function resolveConfigPaths(config: Config): Config & {
   resolvedWorkspacesDir: string;
-  resolvedWorkspaceClaudeTemplate: string;
+  resolvedWorkspaceAgentsTemplate: string;
 } {
   return {
     ...config,
     resolvedWorkspacesDir: expandUser(config.workspacesDir),
-    resolvedWorkspaceClaudeTemplate: expandUser(config.templates.workspaceClaudeMd),
+    resolvedWorkspaceAgentsTemplate: expandUser(config.templates.workspaceAgentsMd),
   };
 }

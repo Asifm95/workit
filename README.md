@@ -180,7 +180,7 @@ Config lives at `~/.config/workit/config.json`. workit writes the defaults the f
 | `defaultTerminal`              | `auto`                                               | Terminal backend strategy. One of `auto`, `cmux`, `tmux`, `warp`, `none`. `auto` picks based on availability — see **Terminal backends**. |
 | `terminalCommand.cmux`         | `/Applications/cmux.app/Contents/Resources/bin/cmux` | Path to the cmux binary. Falls back to looking up `cmux` on `PATH` if unset.                                                              |
 | `terminalCommand.warp`         | _unset_                                              | Reserved. Declared in the schema but not consumed today; Warp is launched via the `warp://launch/<slug>` deep link.                       |
-| `templates.workspaceClaudeMd`  | `~/.config/workit/templates/workspace-CLAUDE.md`     | Path to a template file rendered to `<workspace>/CLAUDE.md` on multi-repo workspace creation. Missing template is logged and skipped.     |
+| `templates.workspaceAgentsMd`  | `~/.config/workit/templates/workspace-AGENTS.md`     | Path to a template file rendered to `<workspace>/AGENTS.md` on multi-repo workspace creation. A companion `<workspace>/CLAUDE.md` containing `@AGENTS.md` is written alongside so Claude Code picks it up. If the template path doesn't exist, workit installs the default there on first run. |
 | `setupScriptPaths`             | `["./setup.sh", ".workit/setup.sh"]`                 | Ordered list of paths (relative to each worktree) where workit looks for a setup script. First match wins. See **Setup scripts**.         |
 | `directoryPicker.dotAllowlist` | `[".workit"]`                                        | Dotfiles/dotdirs to surface in the interactive project picker (which otherwise hides them). `node_modules` is always excluded.            |
 | `logsLines`                    | `50`                                                 | Default history backfill for `workit logs`. Overridable per-call via `--lines`.                                                           |
@@ -196,7 +196,7 @@ Complete example `config.json` at defaults:
     "cmux": "/Applications/cmux.app/Contents/Resources/bin/cmux"
   },
   "templates": {
-    "workspaceClaudeMd": "~/.config/workit/templates/workspace-CLAUDE.md"
+    "workspaceAgentsMd": "~/.config/workit/templates/workspace-AGENTS.md"
   },
   "setupScriptPaths": ["./setup.sh", ".workit/setup.sh"],
   "directoryPicker": {
