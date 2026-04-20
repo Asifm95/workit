@@ -76,7 +76,7 @@ describe("loadConfig", () => {
         defaultBranchType: "fix",
         defaultTerminal: "tmux",
         terminalCommand: {},
-        templates: { workspaceClaudeMd: "~/t" },
+        templates: { workspaceAgentsMd: "~/t" },
         setupScriptPaths: ["./setup.sh"],
       })
     );
@@ -90,6 +90,22 @@ describe("loadConfig", () => {
     const path = join(tmp, "config.json");
     await Bun.write(path, JSON.stringify({ workspacesDir: 42 }));
     await expect(loadConfig(path)).rejects.toThrow();
+  });
+
+  test("rejects legacy templates.workspaceClaudeMd with migration hint", async () => {
+    const path = join(tmp, "config.json");
+    await Bun.write(
+      path,
+      JSON.stringify({
+        workspacesDir: "~/w",
+        defaultBranchType: "feat",
+        defaultTerminal: "none",
+        terminalCommand: {},
+        templates: { workspaceClaudeMd: "~/t" },
+        setupScriptPaths: ["./setup.sh"],
+      })
+    );
+    await expect(loadConfig(path)).rejects.toThrow(/workspaceAgentsMd/);
   });
 });
 

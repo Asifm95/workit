@@ -15,7 +15,7 @@ describe("listEntries", () => {
       defaultBranchType: "feat",
       defaultTerminal: "none",
       terminalCommand: {},
-      templates: { workspaceClaudeMd: "/x" },
+      templates: { workspaceAgentsMd: "/x" },
       setupScriptPaths: ["./setup.sh"],
       directoryPicker: { dotAllowlist: [".workit"] },
       logsLines: 50,

@@ -1,4 +1,4 @@
-import { basename, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
 import { buildNewPlan, formatNewPlan } from '../core/plan';
@@ -8,6 +8,10 @@ import { slugify } from '../core/slug';
 import { branchExists, isGitRepo } from '../git/repo';
 import { addWorktree } from '../git/worktree';
 import { runSetupScripts, type SetupResult } from '../setup/runner';
+import {
+  WORKSPACE_AGENTS_MD_DEFAULT,
+  WORKSPACE_CLAUDE_MD_ALIAS,
+} from '../templates/defaults';
 import { renderTemplate } from '../templates/render';
 import { detectAvailability, dispatchBackend, selectBackend, type BackendName } from '../terminal';
 import { colorFor, hint, info, success, warn } from '../ui/log';
@@ -87,24 +91,28 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
 
   if (plan.isWorkspace && plan.workspacePath) {
     await ensureDir(plan.workspacePath);
-    const tplPath = resolved.resolvedWorkspaceClaudeTemplate;
-    if (await pathExists(tplPath)) {
-      const tpl = await Bun.file(tplPath).text();
-      const rendered = renderTemplate(tpl, {
-        feature_title: toTitleCase(args.description),
-        feature_slug: slug,
-        branch_type: args.branchType,
-        branch_name: plan.targets[0]!.branch,
-        projects: plan.targets.map((t) => ({
-          name: t.project.name,
-          folder: `${t.project.name}.${slug}`,
-          branch: t.branch,
-        })),
-      });
-      await Bun.write(join(plan.workspacePath, 'CLAUDE.md'), rendered);
-    } else {
-      warn(`template not found at ${tplPath}; skipping CLAUDE.md`);
+    const tplPath = resolved.resolvedWorkspaceAgentsTemplate;
+    if (!(await pathExists(tplPath))) {
+      await ensureDir(dirname(tplPath));
+      await Bun.write(tplPath, WORKSPACE_AGENTS_MD_DEFAULT);
+      info(`installed default workspace template at ${tplPath}`);
     }
+    const tpl = await Bun.file(tplPath).text();
+    const rendered = renderTemplate(tpl, {
+      feature_title: toTitleCase(args.description),
+      feature_slug: slug,
+      branch_type: args.branchType,
+      branch_name: plan.targets[0]!.branch,
+      projects: plan.targets.map((t) => ({
+        name: t.project.name,
+        folder: `${t.project.name}.${slug}`,
+        branch: t.branch,
+      })),
+    });
+    await Promise.all([
+      Bun.write(join(plan.workspacePath, 'AGENTS.md'), rendered),
+      Bun.write(join(plan.workspacePath, 'CLAUDE.md'), WORKSPACE_CLAUDE_MD_ALIAS),
+    ]);
   }
 
   await Promise.all(

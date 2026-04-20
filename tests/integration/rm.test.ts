@@ -38,7 +38,7 @@ describe("runRmCommand", () => {
       defaultBranchType: "feat",
       defaultTerminal: "none",
       terminalCommand: {},
-      templates: { workspaceClaudeMd: tpl },
+      templates: { workspaceAgentsMd: tpl },
       setupScriptPaths: ["./setup.sh"],
       directoryPicker: { dotAllowlist: [".workit"] },
       logsLines: 50,
