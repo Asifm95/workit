@@ -61,11 +61,7 @@ export async function loadConfig(
   } catch (err) {
     throw new Error(`Invalid config at ${path}: ${(err as Error).message}`);
   }
-  const legacy =
-    raw && typeof raw === 'object' && 'templates' in raw
-      ? (raw as { templates?: unknown }).templates
-      : undefined;
-  if (legacy && typeof legacy === 'object' && 'workspaceClaudeMd' in legacy) {
+  if ((raw as { templates?: { workspaceClaudeMd?: unknown } })?.templates?.workspaceClaudeMd !== undefined) {
     throw new Error(
       `Invalid config at ${path}: templates.workspaceClaudeMd has been renamed to templates.workspaceAgentsMd ` +
         `(default "~/.config/workit/templates/workspace-AGENTS.md"). Rename the key and, if you customized the ` +
