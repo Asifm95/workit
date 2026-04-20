@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.6.0](https://github.com/Asifm95/workit/compare/v0.5.0...v0.6.0) (2026-04-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* **templates:** config key 'templates.workspaceClaudeMd' renamed to 'templates.workspaceAgentsMd' (default path now points at workspace-AGENTS.md). loadConfig rejects the old key with a message pointing at the new one.
+
+### Features
+
+* **templates:** write AGENTS.md + auto-install default template ([#7](https://github.com/Asifm95/workit/issues/7)) ([3fc8347](https://github.com/Asifm95/workit/commit/3fc83478a01915b4d02832b64398d1318f66a434))
+* **terminal:** name backend workspace to match ls output ([5c60eb8](https://github.com/Asifm95/workit/commit/5c60eb88ac26a575353901d008ff9fbf70983846))
+
+
+### Bug Fixes
+
+* **cmux:** parse refs correctly from OK-prefixed output ([1407c59](https://github.com/Asifm95/workit/commit/1407c59de340f995b769f5e7f6234242f6eb529c))
+
 ## [0.5.0](https://github.com/Asifm95/workit/compare/v0.4.0...v0.5.0) (2026-04-19)
 
 
