@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/Asifm95/workit/compare/v0.7.0...v0.8.0) (2026-04-21)
+
+
+### Features
+
+* **plan:** enhance NewPlan structure to include workspaceName and update related functions ([98a0dcb](https://github.com/Asifm95/workit/commit/98a0dcbb3cd1aae547fb1d638e0dca8a1b29a829))
+
+
+### Bug Fixes
+
+* **commands:** correct status check in runNewCommand for successful setup completion ([1b0e7e8](https://github.com/Asifm95/workit/commit/1b0e7e83403f182772a11bcdf3bd50982c69554f))
+
 ## [0.7.0](https://github.com/Asifm95/workit/compare/v0.6.0...v0.7.0) (2026-04-21)
 
 
