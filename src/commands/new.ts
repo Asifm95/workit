@@ -155,7 +155,7 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
       warn(`could not start setup in ${r.name}: ${r.error ?? 'unknown error'}`);
     } else if (r.status === 'failed') {
       warn(`setup failed in ${r.name}: ${r.error ?? 'unknown error'}`);
-    } else {
+    } else if (r.status === 'ok') {
       success(`${r.name} setup complete`);
     }
   }
