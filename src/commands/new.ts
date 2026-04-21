@@ -1,7 +1,7 @@
 import { basename, dirname, join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
-import { buildNewPlan, formatNewPlan } from '../core/plan';
+import { buildNewPlan, formatNewPlan, type NewPlan } from '../core/plan';
 import { folderName, workspaceFolderName } from '../core/naming';
 import type { Project } from '../core/project-discovery';
 import { slugify } from '../core/slug';
@@ -14,6 +14,7 @@ import {
 } from '../templates/defaults';
 import { renderTemplate } from '../templates/render';
 import { detectAvailability, dispatchBackend, selectBackend, type BackendName } from '../terminal';
+import type { TabSpec } from '../terminal/none';
 import { colorFor, hint, info, success, warn } from '../ui/log';
 import { ensureDir, pathExists } from '../utils/fs';
 
@@ -40,6 +41,22 @@ function toTitleCase(input: string): string {
     .map((w) => (w.length > 0 ? w[0]!.toUpperCase() + w.slice(1) : w))
     .join(' ')
     .trim();
+}
+
+export function buildDispatchTabs(args: {
+  plan: NewPlan;
+  slug: string;
+  backend: BackendName;
+}): TabSpec[] {
+  const { plan, slug, backend } = args;
+  const projectTabs: TabSpec[] = plan.targets.map((t) => ({
+    name: t.project.name,
+    cwd: t.targetPath,
+  }));
+  if (backend === 'none' || !plan.isWorkspace || !plan.workspacePath) {
+    return projectTabs;
+  }
+  return [{ name: slug, cwd: plan.workspacePath }, ...projectTabs];
 }
 
 export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
@@ -159,7 +176,7 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     config: args.config,
     workspaceName,
     workspacePath: plan.workspacePath,
-    tabs: plan.targets.map((t) => ({ name: t.project.name, cwd: t.targetPath })),
+    tabs: buildDispatchTabs({ plan, slug, backend }),
   });
 
   return { ok: true, plan, setupResults };
