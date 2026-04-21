@@ -1,6 +1,6 @@
 import { join } from 'node:path';
-import type { Project } from './project-discovery';
 import { branchName, folderName, workspaceFolderName } from './naming';
+import type { Project } from './project-discovery';
 
 export interface WorktreeTarget {
   project: Project;
@@ -13,6 +13,7 @@ export interface NewPlan {
   slug: string;
   branchType: string;
   isWorkspace: boolean;
+  workspaceName: string;
   workspacePath: string | null;
   targets: WorktreeTarget[];
 }
@@ -36,7 +37,12 @@ export function buildNewPlan(args: BuildNewPlanArgs): NewPlan {
     branch,
     targetPath: join(base, folderName(project.name, slug)),
   }));
-  return { description, slug, branchType, isWorkspace, workspacePath, targets };
+
+  const workspaceName = isWorkspace
+    ? workspaceFolderName(slug)
+    : folderName(projects[0]!.name, slug);
+
+  return { description, slug, branchType, isWorkspace, workspaceName, workspacePath, targets };
 }
 
 export type WorkspaceEntry =
@@ -89,7 +95,7 @@ export function formatNewPlan(plan: NewPlan): string {
   lines.push(`Description: ${plan.description}`);
   lines.push(`Branch:      ${plan.targets[0]?.branch}`);
   if (plan.isWorkspace) {
-    lines.push(`Workspace:   ${plan.workspacePath}`);
+    lines.push(`Workspace:   [${plan.workspaceName}] ${plan.workspacePath}`);
   }
   lines.push(`Worktrees:`);
   for (const t of plan.targets) {

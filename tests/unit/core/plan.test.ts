@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { buildNewPlan, buildRmPlan } from "../../../src/core/plan";
+import { buildNewPlan, buildRmPlan, formatNewPlan } from "../../../src/core/plan";
 import type { Project } from "../../../src/core/project-discovery";
 
 const projA: Project = { name: "proj-a", path: "/main/proj-a" };
@@ -16,6 +16,7 @@ describe("buildNewPlan", () => {
     });
     expect(plan.isWorkspace).toBe(false);
     expect(plan.workspacePath).toBeNull();
+    expect(plan.workspaceName).toBe("proj-a.add-dac7");
     expect(plan.targets).toEqual([
       {
         project: projA,
@@ -34,9 +35,36 @@ describe("buildNewPlan", () => {
       workspacesDir: "/w",
     });
     expect(plan.isWorkspace).toBe(true);
+    expect(plan.workspaceName).toBe("add-dac7");
     expect(plan.workspacePath).toBe("/w/add-dac7");
     expect(plan.targets[0]!.targetPath).toBe("/w/add-dac7/proj-a.add-dac7");
     expect(plan.targets[1]!.targetPath).toBe("/w/add-dac7/proj-b.add-dac7");
+  });
+});
+
+describe("formatNewPlan", () => {
+  test("multi-project output labels workspace with its name and path", () => {
+    const plan = buildNewPlan({
+      description: "Add DAC7",
+      slug: "add-dac7",
+      branchType: "feat",
+      projects: [projA, projB],
+      workspacesDir: "/w",
+    });
+    const out = formatNewPlan(plan);
+    expect(out).toContain("Workspace:   [add-dac7] /w/add-dac7");
+  });
+
+  test("single-project output omits workspace line", () => {
+    const plan = buildNewPlan({
+      description: "Add DAC7",
+      slug: "add-dac7",
+      branchType: "feat",
+      projects: [projA],
+      workspacesDir: "/w",
+    });
+    const out = formatNewPlan(plan);
+    expect(out).not.toContain("Workspace:");
   });
 });
 

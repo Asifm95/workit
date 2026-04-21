@@ -8,6 +8,7 @@ function makePlan(overrides: Partial<NewPlan> = {}): NewPlan {
     slug: "big-change",
     branchType: "feat",
     isWorkspace: true,
+    workspaceName: "big-change",
     workspacePath: "/w/big-change",
     targets: [
       {
@@ -56,6 +57,7 @@ describe("buildDispatchTabs", () => {
   test("single-project (non-workspace) emits only the project tab", () => {
     const plan = makePlan({
       isWorkspace: false,
+      workspaceName: "alpha.big-change",
       workspacePath: null,
       targets: [
         {

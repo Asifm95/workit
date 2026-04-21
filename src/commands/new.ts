@@ -2,16 +2,12 @@ import { basename, dirname, join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
 import { buildNewPlan, formatNewPlan, type NewPlan } from '../core/plan';
-import { folderName, workspaceFolderName } from '../core/naming';
 import type { Project } from '../core/project-discovery';
 import { slugify } from '../core/slug';
 import { branchExists, isGitRepo } from '../git/repo';
 import { addWorktree } from '../git/worktree';
 import { runSetupScripts, type SetupResult } from '../setup/runner';
-import {
-  WORKSPACE_AGENTS_MD_DEFAULT,
-  WORKSPACE_CLAUDE_MD_ALIAS,
-} from '../templates/defaults';
+import { WORKSPACE_AGENTS_MD_DEFAULT, WORKSPACE_CLAUDE_MD_ALIAS } from '../templates/defaults';
 import { renderTemplate } from '../templates/render';
 import { detectAvailability, dispatchBackend, selectBackend, type BackendName } from '../terminal';
 import type { TabSpec } from '../terminal/none';
@@ -112,7 +108,6 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     if (!(await pathExists(tplPath))) {
       await ensureDir(dirname(tplPath));
       await Bun.write(tplPath, WORKSPACE_AGENTS_MD_DEFAULT);
-      info(`installed default workspace template at ${tplPath}`);
     }
     const tpl = await Bun.file(tplPath).text();
     const rendered = renderTemplate(tpl, {
@@ -155,11 +150,9 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
   });
   for (const r of setupResults) {
     if (r.status === 'missing') {
-      hint(`no setup script in ${r.name} — create one to automate this step`);
+      hint(`no setup script found in ${r.name} — create one to automate this step`);
     } else if (r.status === 'failed-to-start') {
       warn(`could not start setup in ${r.name}: ${r.error ?? 'unknown error'}`);
-    } else if (r.status === 'spawned') {
-      info(`setup started in ${r.name} → tail -f ${r.logPath}`);
     } else if (r.status === 'failed') {
       warn(`setup failed in ${r.name}: ${r.error ?? 'unknown error'}`);
     } else {
@@ -167,14 +160,10 @@ export async function runNewCommand(args: RunNewArgs): Promise<RunNewResult> {
     }
   }
 
-  const workspaceName = plan.isWorkspace
-    ? workspaceFolderName(slug)
-    : folderName(plan.targets[0]!.project.name, slug);
-
   await dispatchBackend({
     backend,
     config: args.config,
-    workspaceName,
+    workspaceName: plan.workspaceName,
     workspacePath: plan.workspacePath,
     tabs: buildDispatchTabs({ plan, slug, backend }),
   });
