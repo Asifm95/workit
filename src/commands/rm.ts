@@ -3,7 +3,7 @@ import { basename, join, resolve } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
 import { buildRmPlan, formatRmPlan, type WorkspaceEntry, type WorktreeTarget } from '../core/plan';
-import { ensureDir, pathExists } from '../utils/fs';
+import { ensureDir, isWorktreePointer, pathExists } from '../utils/fs';
 import { removeWorktree } from '../git/worktree';
 import { deleteBranch, isDirty, hasUnpushedCommits } from '../git/repo';
 import { info, warn, success } from '../ui/log';
@@ -22,7 +22,7 @@ export interface RunRmResult {
 }
 
 async function resolveWorktreeTarget(path: string): Promise<WorktreeTarget | null> {
-  if (!(await pathExists(join(path, '.git')))) return null;
+  if (!(await isWorktreePointer(path))) return null;
   const { execa } = await import('execa');
   const commonDir = await execa(
     'git',
@@ -48,7 +48,7 @@ async function loadEntries(workspacesDir: string): Promise<WorkspaceEntry[]> {
   for (const c of children) {
     if (!c.isDirectory()) continue;
     const full = join(workspacesDir, c.name);
-    if (await pathExists(join(full, '.git'))) {
+    if (await isWorktreePointer(full)) {
       const target = await resolveWorktreeTarget(full);
       if (target) entries.push({ kind: 'single', path: full, target });
       continue;

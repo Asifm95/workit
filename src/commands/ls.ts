@@ -2,7 +2,7 @@ import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Config } from '../core/config';
 import { resolveConfigPaths } from '../core/config';
-import { pathExists } from '../utils/fs';
+import { isWorktreePointer, pathExists } from '../utils/fs';
 import { info } from '../ui/log';
 
 export interface ListEntry {
@@ -20,7 +20,7 @@ export async function listEntries(config: Config): Promise<ListEntry[]> {
   for (const c of children) {
     if (!c.isDirectory()) continue;
     const full = join(root, c.name);
-    const kind = (await pathExists(join(full, '.git'))) ? 'single' : 'workspace';
+    const kind = (await isWorktreePointer(full)) ? 'single' : 'workspace';
     out.push({ kind, name: c.name, path: full });
   }
   out.sort((a, b) => a.name.localeCompare(b.name));

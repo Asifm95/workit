@@ -99,4 +99,35 @@ describe("runRmCommand", () => {
     expect(await branchExists(projAlpha, "feat/big-thing")).toBe(false);
     expect(await branchExists(projBeta, "feat/big-thing")).toBe(false);
   });
+
+  test("removes a workspace whose folder has its own .git (user ran git init inside it)", async () => {
+    await runNewCommand({
+      config,
+      description: "Init Inside",
+      branchType: "feat",
+      projectPaths: [join(root, "projects", "alpha"), join(root, "projects", "beta")],
+      terminal: "none",
+      assumeYes: true,
+    });
+    const ws = join(config.workspacesDir, "init-inside");
+    expect(await pathExists(ws)).toBe(true);
+
+    // Simulate the user running `git init` inside the workspace folder to
+    // track AGENTS.md / CLAUDE.md. This must not confuse detection.
+    await execa("git", ["init", "-q", "-b", "main", ws]);
+
+    const result = await runRmCommand({
+      config,
+      name: "init-inside",
+      deleteBranch: true,
+      force: false,
+      assumeYes: true,
+    });
+    expect(result.ok).toBe(true);
+    expect(await pathExists(ws)).toBe(false);
+    const projAlpha = join(root, "projects", "alpha");
+    const projBeta = join(root, "projects", "beta");
+    expect(await branchExists(projAlpha, "feat/init-inside")).toBe(false);
+    expect(await branchExists(projBeta, "feat/init-inside")).toBe(false);
+  });
 });
