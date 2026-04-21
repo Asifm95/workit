@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/Asifm95/workit/compare/v0.6.0...v0.7.0) (2026-04-21)
+
+
+### Features
+
+* **commands:** add buildDispatchTabs function to manage terminal tabs based on project plans ([4784207](https://github.com/Asifm95/workit/commit/47842070ec79847fd1b5c94874eb2fe159dd5741))
+* **workspace-detection:** implement detection of workspace type based on `.git` kind ([f4573c3](https://github.com/Asifm95/workit/commit/f4573c302e784e1c958c5e315cb6f8a4ec67e301))
+
 ## [0.6.0](https://github.com/Asifm95/workit/compare/v0.5.0...v0.6.0) (2026-04-20)
 
 
